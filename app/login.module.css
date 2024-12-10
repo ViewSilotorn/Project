@@ -1,0 +1,294 @@
+.btn_login {
+    top: 657px;
+    left: 755px;
+    width: 410px;
+    height: 60px;
+    background: var(--unnamed-color-007bff) 0% 0% no-repeat padding-box;
+    background: #007bff 0% 0% no-repeat padding-box;
+    border-radius: 7px;
+    opacity: 1;
+    /* UI Properties */
+    font: var(--unnamed-font-style-normal) normal var(--unnamed-font-weight-normal) var(--unnamed-font-size-20)/var(--unnamed-line-spacing-26) var(--unnamed-font-family-roboto);
+    letter-spacing: var(--unnamed-character-spacing-0-66);
+    color: var(--unnamed-color-ffffff);
+    text-align: center;
+    font: normal normal normal 20px/26px Roboto;
+    letter-spacing: 0.66px;
+    color: #FFFFFF;
+    opacity: 1;
+    width: 100%;
+}
+
+.card {
+    /* UI Properties */
+    background: var(--unnamed-color-ffffff) 0% 0% no-repeat padding-box;
+    background: #ffffff 0% 0% no-repeat padding-box;
+    box-shadow: 0px 3px 6px #00000029;
+    border-radius: 17px;
+    opacity: 1;
+    width: 100%;
+    max-width: 560px;
+}
+
+.title {
+    /* UI Properties */
+    font: var(--unnamed-font-style-normal) normal bold 40px/53px var(--unnamed-font-family-roboto);
+    color: var(--unnamed-color-1a1a1a);
+    text-align: left;
+    font: normal normal bold 40px/53px Roboto;
+    letter-spacing: 3.2px;
+    color: #1a1a1a;
+    opacity: 1;
+}
+
+.root_login {
+    gap: 4rem;
+    display: grid;
+    /* Creates a grid layout */
+    place-items: center;
+    padding: 2rem 2rem 5rem;
+    padding-bottom: 5rem;
+    /* UI Properties */
+    background: var(--unnamed-color-ffffff) 0% 0% no-repeat padding-box;
+    background: #ffffff 0% 0% no-repeat padding-box;
+    opacity: 1;
+    margin-top: 30;
+}
+
+@media (min-width: 640px) {
+    .container {
+        padding: 5rem;
+        /* Increases padding for screens 640px and wider */
+    }
+}
+
+.root_signUp {
+    gap: 4rem;
+    display: grid;
+    /* Creates a grid layout */
+    place-items: center;
+    padding: 2rem 2rem 5rem;
+    padding-bottom: 1rem;
+    /* UI Properties */
+    background: var(--unnamed-color-ffffff) 0% 0% no-repeat padding-box;
+    background: #ffffff 0% 0% no-repeat padding-box;
+    opacity: 1;
+}
+
+@media (min-width: 640px) {
+    .container {
+        padding: 5rem;
+        /* Increases padding for screens 640px and wider */
+    }
+}
+
+.p {
+    /* UI Properties */
+    font: var(--unnamed-font-style-normal) normal var(--unnamed-font-weight-normal) 24px/32px var(--unnamed-font-family-roboto);
+    color: var(--unnamed-color-1a1a1a);
+    text-align: left;
+    font: normal normal normal 24px/32px Roboto;
+    letter-spacing: 0.79px;
+    color: #1a1a1a;
+    opacity: 1;
+}
+
+.text_email {
+    /* UI Properties */
+    font: var(--unnamed-font-style-normal) normal var(--unnamed-font-weight-normal) var(--unnamed-font-size-20) / var(--unnamed-line-spacing-26) var(--unnamed-font-family-roboto);
+    letter-spacing: var(--unnamed-character-spacing-0-66);
+    color: var(--unnamed-color-1a1a1a);
+    text-align: left;
+    font: normal normal normal 20px/26px Roboto;
+    letter-spacing: 0.66px;
+    color: #1a1a1a;
+    opacity: 1;
+    margin-top: 20;
+}
+
+.input_email {
+    /* Layout Properties */
+    top: 319px;
+    left: 755px;
+    width: 410px;
+    height: 60px;
+    /* UI Properties */
+    background: var(--unnamed-color-ffffff) 0% 0% no-repeat padding-box;
+    background: #ffffff 0% 0% no-repeat padding-box;
+    border: 1.5px solid #707070;
+    border-radius: 7px;
+    width: 100%;
+    padding-left: 0.75rem;
+    /* 12px */
+    padding-right: 0.75rem;
+    /* 12px */
+    padding-top: 0.375rem;
+    /* 6px */
+    padding-bottom: 0.375rem;
+    /* 6px */
+    opacity: 1;
+}
+
+.input_placeholder_email {
+    font: var(--unnamed-font-style-normal) normal var(--unnamed-font-weight-normal) var(--unnamed-font-size-20)/var(--unnamed-line-spacing-26) var(--unnamed-font-family-roboto);
+    letter-spacing: var(--unnamed-character-spacing-0-66);
+    text-align: left;
+    font: normal normal normal 20px/26px Roboto;
+    letter-spacing: 0.66px;
+    color: #B3B3B3;
+    opacity: 1;
+}
+
+.text_password {
+    /* Layout Properties */
+    top: 399px;
+    left: 755px;
+    width: 93px;
+    height: 26px;
+    /* UI Properties */
+    font: var(--unnamed-font-style-normal) normal var(--unnamed-font-weight-normal) var(--unnamed-font-size-20) / var(--unnamed-line-spacing-26) var(--unnamed-font-family-roboto);
+    letter-spacing: var(--unnamed-character-spacing-0-66);
+    color: var(--unnamed-color-1a1a1a);
+    text-align: left;
+    font: normal normal normal 20px/26px Roboto;
+    letter-spacing: 0.66px;
+    color: #1a1a1a;
+    opacity: 1;
+}
+
+.input_password {
+    /* Layout Properties */
+    top: 435px;
+    left: 755px;
+    width: 410px;
+    height: 60px;
+    /* UI Properties */
+    background: var(--unnamed-color-ffffff) 0% 0% no-repeat padding-box;
+    background: #FFFFFF 0% 0% no-repeat padding-box;
+    border: 1.5px solid #707070;
+    border-radius: 7px;
+    opacity: 1;
+    width: 100%;
+    padding-left: 0.75rem;
+    /* 12px */
+    padding-right: 0.75rem;
+    /* 12px */
+    padding-top: 0.375rem;
+    /* 6px */
+    padding-bottom: 0.375rem;
+    /* 6px */
+}
+
+.input_placeholder_password {
+    /* UI Properties */
+    font: var(--unnamed-font-style-normal) normal var(--unnamed-font-weight-normal) var(--unnamed-font-size-20)/var(--unnamed-line-spacing-26) var(--unnamed-font-family-roboto);
+    letter-spacing: var(--unnamed-character-spacing-0-66);
+    text-align: left;
+    font: normal normal normal 20px/26px Roboto;
+    letter-spacing: 0.66px;
+    color: #B3B3B3;
+    opacity: 1;
+}
+
+.text_fgpass {
+    /* UI Properties */
+    text-decoration: var(--unnamed-decoration-underline);
+    font: var(--unnamed-font-style-normal) normal var(--unnamed-font-weight-normal) var(--unnamed-font-size-18)/var(--unnamed-line-spacing-24) var(--unnamed-font-family-roboto);
+    letter-spacing: var(--unnamed-character-spacing-0-59);
+    color: var(--unnamed-color-007bff);
+    text-align: center;
+    text-decoration: underline;
+    font: normal normal normal 18px/24px Roboto;
+    letter-spacing: 0.59px;
+    color: #007BFF;
+    opacity: 1;
+}
+
+.hr_line span {
+    /* UI Properties */
+    font: var(--unnamed-font-style-normal) normal var(--unnamed-font-weight-normal) var(--unnamed-font-size-20)/var(--unnamed-line-spacing-26) var(--unnamed-font-family-roboto);
+    text-align: center;
+    font: normal normal normal 20px/26px Roboto;
+    letter-spacing: 0.6px;
+    color: #B3B3B3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+}
+
+.hr_line ::before,
+.hr_line ::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    border: 1.5px solid #B3B3B3;
+    margin: 0 5px;
+}
+
+.btn_google {
+    /* Layout Properties */
+    top: 809px;
+    left: 755px;
+    width: 410px;
+    height: 60px;
+    /* UI Properties */
+    border: 1.5px solid var(--unnamed-color-007bff);
+    background: transparent 0% 0% no-repeat padding-box;
+    border: 1.5px solid #007BFF;
+    border-radius: 7px;
+    opacity: 1;
+    width: 100%;
+    padding-left: 0.75rem;
+    /* 12px */
+    padding-right: 0.75rem;
+    /* 12px */
+    padding-top: 0.375rem;
+    /* 6px */
+    padding-bottom: 0.375rem;
+    /* 6px */
+    margin-top: 15;
+    margin-bottom: 30;
+
+    /* UI Properties */
+    font: var(--unnamed-font-style-normal) normal var(--unnamed-font-weight-normal) var(--unnamed-font-size-20)/var(--unnamed-line-spacing-26) var(--unnamed-font-family-roboto);
+    letter-spacing: var(--unnamed-character-spacing-0-66);
+    color: var(--unnamed-color-007bff);
+    text-align: center;
+    font: normalF normal normal 20px/26px Roboto;
+    letter-spacing: 0.66px;
+    color: #007BFF;
+    opacity: 1;
+}
+
+.logo_google {
+    display: flex;
+    opacity: 1;
+    align-items: center;
+    justify-content: center;
+    gap:10
+}
+
+.text_account {
+    /* UI Properties */
+    font: var(--unnamed-font-style-normal) normal var(--unnamed-font-weight-normal) 17px/23px var(--unnamed-font-family-roboto);
+    color: var(--unnamed-color-1a1a1a);
+    text-align: left;
+    font: normal normal normal 17px/23px Roboto;
+    letter-spacing: 0.51px;
+    color: #1A1A1A;
+    opacity: 1;
+}
+
+.textaccount {
+    /* UI Properties */
+    text-decoration: var(--unnamed-decoration-underline);
+    font: var(--unnamed-font-style-normal) normal var(--unnamed-font-weight-normal) 17px/23px var(--unnamed-font-family-roboto);
+    color: var(--unnamed-color-007bff);
+    text-align: left;
+    text-decoration: underline;
+    font: normal normal normal 17px/23px Roboto;
+    letter-spacing: 0.51px;
+    color: #007BFF;
+    opacity: 1;
+}

@@ -1,0 +1,77 @@
+.box {
+    /* Layout Properties */
+    top: 74px;
+    left: 0px;
+    width: 195px;
+    height: 72px;
+    /* UI Properties */
+    background: var(--unnamed-color-f8f8f8) 0% 0% no-repeat padding-box;
+    background: #F8F8F8 0% 0% no-repeat padding-box;
+    opacity: 1;
+}
+
+.text_box {
+    /* UI Properties */
+    font: var(--unnamed-font-style-normal) normal var(--unnamed-font-weight-normal) var(--unnamed-font-size-20)/var(--unnamed-line-spacing-26) var(--unnamed-font-family-roboto);
+    color: var(--unnamed-color-c7c5c5);
+    text-align: center;
+    font: normal normal normal 20px/26px Roboto;
+    letter-spacing: 1px;
+    color: #C7C5C5;
+    opacity: 1;
+    display: flex;
+    /* ใช้ Flexbox ภายใน */
+    justify-content: center;
+    /* จัดกึ่งกลางแนวนอน */
+    align-items: center;
+    /* จัดกึ่งกลางแนวตั้ง */
+    border: 1px solid black;
+    text-align: center;
+}
+
+/* เปลี่ยนสีเมื่อโฮเวอร์ */
+.text_box:hover {
+    /* UI Properties */
+    background: var(--unnamed-color-ffffff) 0% 0% no-repeat padding-box;
+    background: #FFFFFF 0% 0% no-repeat padding-box;
+    opacity: 1;
+    border-color: #FFFFFF 0% 0% no-repeat padding-box;
+}
+
+/* เปลี่ยนสไตล์เมื่อคลิก */
+.text_box:active {
+    /* UI Properties */
+    font: var(--unnamed-font-style-normal) normal var(--unnamed-font-weight-normal) var(--unnamed-font-size-18)/var(--unnamed-line-spacing-24) var(--unnamed-font-family-roboto);
+    color: var(--unnamed-color-265cb3);
+    text-align: center;
+    font: normal normal normal 18px/24px Roboto;
+    letter-spacing: 0.9px;
+    color: #265CB3;
+    opacity: 1;
+    /* สีพื้นหลังเมื่อคลิก */
+    transform: scale(0.95);
+    /* ลดขนาดกล่องเมื่อคลิก */
+}
+
+.grid_container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    /* แบ่งเป็น 2 คอลัมน์ */
+    gap: 0;
+    /* ไม่มีช่องว่างระหว่างแถวและคอลัมน์ */
+    text-align: center;
+}
+
+.grid_item {
+    border: 1px solid #C7C5C5;
+}
+
+.sidebar {
+    /* Layout Properties */
+    width: 585px;
+    height: 1080px;
+    /* UI Properties */
+    background: var(--unnamed-color-ffffff) 0% 0% no-repeat padding-box;
+    background: #FFFFFF 0% 0% no-repeat padding-box;
+    opacity: 1;
+}
