@@ -1,0 +1,33 @@
+.card {
+    cursor: pointer;
+}
+
+.Link :hover{
+    border: 2px solid #007BFF;
+}
+
+.btn_filter {
+    /* Layout Properties */
+    width: 50px;
+    height: 50px;
+    /* UI Properties */
+    background: var(--unnamed-color-ffffff) 0% 0% no-repeat padding-box;
+    border: 1.5px solid var(--unnamed-color-c7c5c5);
+    background: #FFFFFF 0% 0% no-repeat padding-box;
+    border: 2px solid #C7C5C5;
+    border-radius: 9px;
+    opacity: 1;
+}
+
+.input_search {
+    /* Layout Properties */
+    width: 419px;
+    height: 50px;
+    /* UI Properties */
+    background: var(--unnamed-color-ffffff) 0% 0% no-repeat padding-box;
+    border: 1.5px solid var(--unnamed-color-c7c5c5);
+    background: #FFFFFF 0% 0% no-repeat padding-box;
+    border: 2px solid #C7C5C5;
+    border-radius: 9px;
+    opacity: 1;
+}
