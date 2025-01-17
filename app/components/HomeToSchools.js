@@ -2,24 +2,43 @@
 import styles from '../css/HomeToSchools.module.css';
 import { getAuth } from "firebase/auth";
 import { useState, useEffect, useRef } from "react";
+import { fetchStudents } from '../services/studentService';
 
 export default function HomeToSchoolSidebar({ isOpen, onClose }) {
     if (!isOpen) return null; // ถ้า Sidebar ไม่เปิด ให้คืนค่า null
 
     const [currentPageHome, setCurrentPageHome] = useState('Home To Schools');
+    const [students, setStudents] = useState([]);
+    const [error, setError] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalCount, setTotalCount] = useState(0);
+    const [perPage, setPerPage] = useState(5);
 
-    const Data = [
-        { id: 1, name: "John Doe", address: "123 Main St, Springfield" },
-        { id: 2, name: "Jane Smith", address: "456 Elm St, Rivertown" },
-        { id: 3, name: "Alice Johnson", address: "789 Oak Ave, Lakeview" },
-        { id: 4, name: "Bob Brown", address: "321 Maple St, Cedarville" },
-        { id: 5, name: "Carol White", address: "654 Pine Rd, Greenwood" },
-        { id: 6, name: "David Black", address: "987 Birch Ln, Oakwood" },
-        { id: 7, name: "Emma Green", address: "111 Ash Ct, Willowtown" },
-        { id: 8, name: "Frank Gray", address: "222 Cherry Dr, Riverbend" },
-        { id: 9, name: "Grace Blue", address: "333 Walnut St, Meadowlake" },
-        { id: 10, name: "Henry Yellow", address: "444 Poplar Ave, Sunnyvale" },
-    ]
+    //Show student
+    useEffect(() => {
+        const loadStudents = async () => {
+            try {
+                const data = await fetchStudents(currentPage);
+                console.log(data);
+                setStudents(data.students);  // ตั้งค่าข้อมูลนักเรียน
+                setTotalCount(data.total_count);  // ตั้งค่าจำนวนรวมของนักเรียน
+                setPerPage(data.per_page);  // ตั้งค่าจำนวนนักเรียนต่อหน้า
+            } catch (error) {
+                setError(error.message);
+            }
+        };
+
+        loadStudents();
+    }, [currentPage]);
+
+
+    const handleNextPage = () => {
+        if (currentPage < Math.ceil(totalCount / perPage)) {
+            setCurrentPage(currentPage + 1);
+        }
+    };
+
+    const totalPages = Math.ceil(totalCount / perPage);
 
     return (
         <aside
@@ -32,20 +51,29 @@ export default function HomeToSchoolSidebar({ isOpen, onClose }) {
                 <div >
                     {currentPageHome === 'Home To Schools' && (
                         <div>
-                            <div className="relative px-3 flex flex-col">
-                                <div className="flex flex-col items-start space-y-1 mt-2">
-                                    <span className={styles.text_date}>Tuesday, January 2025</span>
-                                    <div className="flex items-center">
-                                        <form className="max-w-sm mx-auto mt-3">
-                                            <label htmlFor="number-input" className={`${styles.number} block`}>Number of cars:</label>
-                                            <input type="number" id="number-input" min="0" className={`${styles.number_input} mt-2 `} required />
-                                        </form>
+                            <div className="relative px-3 flex flex-col bg-gray-100">
+                                <div className='sticky top-0 z-10 bg-gray-100'>
+                                    <div className="flex flex-col items-start space-y-1 mt-2">
+                                        <span className={styles.text_date}>Tuesday, January 2025</span>
+                                        <div className="flex items-center">
+                                            <form className="max-w-sm mx-auto mt-3">
+                                                <label htmlFor="number-input" className={`${styles.number} block`}>Number of Bus:</label>
+                                                <input type="number" id="number-input" min="0" className={`${styles.number_input} mt-2 `} required />
+                                            </form>
+                                            <form className="max-w-sm mx-auto mt-3 ml-10">
+                                                <label htmlFor="number-input" className={`${styles.number} block`}>Max capacity:</label>
+                                                <input type="number" id="number-input" min="0" className={`${styles.number_input} mt-2 `} required />
+                                            </form>
+                                            <form className="max-w-sm mx-auto mt-3 ml-10">
+                                                <label htmlFor="number-input" className={`${styles.number} block`}>Time:</label>
+                                                <input type="number" id="number-input" min="0" className={`${styles.number_input} mt-2 `} required />
+                                            </form>
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="mt-5">
-                                    <span className={styles.text_student}>Students</span>
-                                </div>
-                                {/* <div className="flex mt-2 mb-3 items-center gap-2">
+                                    <div className="mt-5">
+                                        <span className={styles.text_student}>Students</span>
+                                    </div>
+                                    {/* <div className="flex mt-2 mb-3 items-center gap-2">
                                     <div className="relative">
                                         <label htmlFor="Search" className="sr-only"> Search </label>
                                         <input
@@ -64,45 +92,91 @@ export default function HomeToSchoolSidebar({ isOpen, onClose }) {
                                         </span>
                                     </div>
                                 </div> */}
-                                <div className="relative mt-2 mb-2">
-                                    <label htmlFor="Search" className="sr-only"> Search </label>
-                                    <input
-                                        type="text"
-                                        id="Search"
-                                        placeholder="Name or ID" className={`${styles.input_search} bg-white  py-2 px-10 border border-gray-400 rounded shadow`} />
-                                    <span className="absolute inset-y-0 start-0 grid w-12 place-content-center">
-                                        <button type="button">
-                                            <span className="sr-only">Search</span>
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#00000029" className="size-6 b">
-                                                <path fillRule="evenodd" d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z" clipRule="evenodd" />
-                                            </svg>
-                                        </button>
-                                    </span>
+                                    <div className="relative mt-2 mb-2">
+                                        <label htmlFor="Search" className="sr-only"> Search </label>
+                                        <input
+                                            type="text"
+                                            id="Search"
+                                            placeholder="Name Student" className={`${styles.input_search} bg-white  py-2 px-10 border border-gray-400 rounded shadow`} />
+                                        <span className="absolute inset-y-0 start-0 grid w-12 place-content-center">
+                                            <button type="button">
+                                                <span className="sr-only">Search</span>
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#00000029" className="size-6 b">
+                                                    <path fillRule="evenodd" d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z" clipRule="evenodd" />
+                                                </svg>
+                                            </button>
+                                        </span>
+                                    </div>
                                 </div>
 
-                                {Data.map((item) => (
-                                    <div key={item.id} className={`${styles.card} flex w-full my-1 p-4 max-w-lg flex-col rounded-lg bg-white shadow-sm border border-slate-200 hover:bg-gray-100`}>
+                                {students.map((student) => (
+                                    <div key={student.id} className={`${styles.card} flex w-full my-1 p-4 max-w-lg flex-col rounded-lg bg-white shadow-sm border border-slate-200`}>
                                         <div className="flex items-center gap-4">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#265CB3" className="size-10">
-                                                <path fillRule="evenodd" d="m11.54 22.351.07.04.028.016a.76.76 0 0 0 .723 0l.028-.015.071-.041a16.975 16.975 0 0 0 1.144-.742 19.58 19.58 0 0 0 2.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 0 0-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 0 0 2.682 2.282 16.975 16.975 0 0 0 1.145.742ZM12 13.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" clipRule="evenodd" />
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="#265CB3" className="size-10">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
                                             </svg>
 
                                             <div className="flex w-full flex-col">
                                                 <div className="flex items-center justify-between">
                                                     <h5 className={styles.text_name}>
-                                                        {item.name}
+                                                        {student.first_name}   {student.last_name}
                                                     </h5>
                                                 </div>
                                                 <p className={styles.text_adress}>
-                                                    {item.address}
+                                                    {student.address}
                                                 </p>
                                             </div>
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-10">
+                                            <button
+                                                type="button"
+                                                className={`${student.status === 1
+                                                    ? styles.btn_status
+                                                    : styles.btn_status_cancel
+                                                    } rounded-lg p-3 py-2 my-2 mb-2`}
+                                            >
+                                                {student.status === 1 ? 'Confirmed' : 'Canceled'}
+                                            </button>
+                                            {/* <button type="button"
+                                                className={`${styles.btn_status} rounded-lg p-3 py-2 my-2  mb-2 `}>
+                                                Confirmed
+                                            </button><button type="button"
+                                                className={`${styles.btn_status_cancel} rounded-lg p-3 py-2 my-2  mb-2 `}>
+                                                Canceled
+                                            </button> */}
+                                            {/* <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-10">
                                                 <path fillRule="evenodd" d="M16.28 11.47a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 0 1-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 0 1 1.06-1.06l7.5 7.5Z" clipRule="evenodd" />
-                                            </svg>
+                                            </svg> */}
                                         </div>
                                     </div>
                                 ))}
+                                <div className="flex flex-1 justify-between py-2">
+                                    <button
+                                        onClick={(e) => {
+                                            e.preventDefault(); // Prevent default anchor behavior
+                                            if (currentPage > 1) setCurrentPage(currentPage - 1);
+                                        }}
+                                        className={`relative inline-flex items-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium ${currentPage > 1 ? 'bg-white text-gray-700 hover:bg-gray-50' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                            }`}
+                                    >
+                                        Previous
+                                    </button>
+                                    <span className="text-sm text-gray-700 py-2">
+                                        Page {currentPage} of {totalPages}
+                                    </span>
+                                    <button
+                                        onClick={(e) => {
+                                            e.preventDefault(); // Prevent default anchor behavior
+                                            handleNextPage();
+                                        }}
+                                        className={`relative ml-3 inline-flex items-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium ${currentPage < Math.ceil(totalCount / perPage)
+                                            ? 'bg-white text-gray-700 hover:bg-gray-50'
+                                            : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                            }`}
+                                    >
+                                        Next
+                                    </button>
+                                </div>
+
                             </div>
 
                             {/* <div className="bg-white p-5 sticky bottom-0 left-0 right-0 flex justify-center ">
@@ -110,10 +184,10 @@ export default function HomeToSchoolSidebar({ isOpen, onClose }) {
                                     Optimize Route
                                 </button>
                             </div> */}
-                            <div className="sticky bottom-0 flex justify-center bg-[#f9f9f9] border-t border-gray-300 w-ful">
+                            <div className="mt-auto sticky bottom-0 flex justify-center bg-[#f9f9f9] border-t border-gray-300 w-ful">
                                 <div className="bg-white w-screen py-3">
                                     <button
-                                        className="mx-auto block text-white bg-blue-500 hover:bg-blue-600 rounded px-4 py-2"
+                                        className={`${styles.btn_route} mx-auto block bg-blue-500 hover:bg-blue-600 rounded px-4 py-2`}
                                         onClick={() => setCurrentPageHome('Routes')}
                                     >
                                         Optimize Routes
@@ -122,7 +196,9 @@ export default function HomeToSchoolSidebar({ isOpen, onClose }) {
                             </div>
                         </div>
                     )}
+                </div>
 
+                <div className="h-full overflow-y-auto flex flex-col">
                     {currentPageHome === 'Routes' && (
                         <div>
                             <div className="flex items-center p-2">
@@ -150,49 +226,64 @@ export default function HomeToSchoolSidebar({ isOpen, onClose }) {
                                     </div>
                                 </div>
                             </div>
+
                         </div>
                     )}
+                    <div className="mt-auto sticky bottom-0 flex justify-center bg-[#f9f9f9] border-t border-gray-300 w-ful">
+                        <div className="flex bg-white w-screen py-3">
+                            <button
+                                className={`${styles.btn_reset } mx-auto block bg-blue-500 rounded px-4 py-2`}
+                            >
+                                Reset
+                            </button>
+                            <button
+                                className={`${styles.btn_download} mx-auto block bg-blue-500 rounded px-4 py-2`}
+                            >
+                                Download
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
-                    {currentPageHome === 'RoutesNumber' && (
-                        <div>
-                            <div className="flex items-center p-2">
-                                <svg onClick={() => setCurrentPageHome('Routes')} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="size-10">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-                                </svg>
-                                <div className="flex items-center p-2 space-x-2">
-                                    <div className={`w-8 h-8 bg-orange-300 rounded`}></div>
-                                    <h1 className={`${styles.title}`}>Routes</h1>
-                                </div>
+                {currentPageHome === 'RoutesNumber' && (
+                    <div>
+                        <div className="flex items-center p-2 sticky top-0 bg-gray-50">
+                            <svg onClick={() => setCurrentPageHome('Routes')} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="size-10">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                            </svg>
+                            <div className="flex items-center p-2 space-x-2">
+                                <div className={`w-8 h-8 bg-orange-300 rounded`}></div>
+                                <h1 className={`${styles.title}`}>Routes</h1>
                             </div>
-                            <hr className="mb-5"></hr>
-                            {Data.map((item) => (
-                                <div className='px-3'>
-                                    <div key={item.id} className={`${styles.card} flex w-full my-2 p-4 max-w-lg flex-col rounded-lg bg-white shadow-sm border border-slate-200 hover:bg-gray-100`}>
-                                        <div className="flex items-center gap-4">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#265CB3" className="size-10">
-                                                <path fillRule="evenodd" d="m11.54 22.351.07.04.028.016a.76.76 0 0 0 .723 0l.028-.015.071-.041a16.975 16.975 0 0 0 1.144-.742 19.58 19.58 0 0 0 2.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 0 0-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 0 0 2.682 2.282 16.975 16.975 0 0 0 1.145.742ZM12 13.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" clipRule="evenodd" />
-                                            </svg>
+                        </div>
+                        <hr className="mb-5"></hr>
+                        {students.map((student) => (
+                            <div className='px-3'  key={student.id}>
+                                <div className={`${styles.card} flex w-full my-2 p-4 max-w-lg flex-col rounded-lg bg-white shadow-sm border border-slate-200 hover:bg-gray-100`}>
+                                    <div className="flex items-center gap-4">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#265CB3" className="size-10">
+                                            <path fillRule="evenodd" d="m11.54 22.351.07.04.028.016a.76.76 0 0 0 .723 0l.028-.015.071-.041a16.975 16.975 0 0 0 1.144-.742 19.58 19.58 0 0 0 2.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 0 0-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 0 0 2.682 2.282 16.975 16.975 0 0 0 1.145.742ZM12 13.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" clipRule="evenodd" />
+                                        </svg>
 
-                                            <div className="flex w-full flex-col">
-                                                <div className="flex items-center justify-between">
-                                                    <h5 className={styles.text_name}>
-                                                        {item.name}
-                                                    </h5>
-                                                </div>
-                                                <p className={styles.text_adress}>
-                                                    {item.address}
-                                                </p>
+                                        <div className="flex w-full flex-col">
+                                            <div className="flex items-center justify-between">
+                                                <h5 className={styles.text_name}>
+                                                    {student.first_name}  {student.last_name}
+                                                </h5>
                                             </div>
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-10">
-                                                <path fillRule="evenodd" d="M16.28 11.47a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 0 1-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 0 1 1.06-1.06l7.5 7.5Z" clipRule="evenodd" />
-                                            </svg>
+                                            <p className={styles.text_adress}>
+                                                {student.address}
+                                            </p>
                                         </div>
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-10">
+                                            <path fillRule="evenodd" d="M16.28 11.47a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 0 1-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 0 1 1.06-1.06l7.5 7.5Z" clipRule="evenodd" />
+                                        </svg>
                                     </div>
                                 </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
         </aside>
     );

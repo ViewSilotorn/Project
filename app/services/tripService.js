@@ -1,6 +1,9 @@
 import { getAuth } from "firebase/auth";
+const host = process.env.NEXT_PUBLIC_API_HOST;
+const port = process.env.NEXT_PUBLIC_API_PORT;
 
-const API_BASE_URL = 'http://192.168.3.251:8080'; 
+// สร้าง base URL
+const apiBaseUrl = `${host}:${port}`;
 
 export const fetchTrips = async () => {
     
@@ -14,7 +17,7 @@ export const fetchTrips = async () => {
         const idToken = await user.getIdToken();
         console.log("JWT Token:", idToken);
 
-        const res = await fetch(`${API_BASE_URL}/api/trips`, {
+        const res = await fetch(`${apiBaseUrl}/api/trips`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${idToken}`,

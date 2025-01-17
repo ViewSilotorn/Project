@@ -1,17 +1,17 @@
 "use client";
 import style from '../css/side.module.css';
-import styles from '../css/nav.module.css';
 import Link from 'next/link';
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { getAuth } from "firebase/auth";
+import { getStudentById, updateStudent } from '../services/studentService';
 const host = process.env.NEXT_PUBLIC_API_HOST;
 const port = process.env.NEXT_PUBLIC_API_PORT;
 
 // สร้าง base URL
 const apiBaseUrl = `${host}:${port}`;
 
-const addStudent = ({ isOpenAddStudent, onCloseAddStudent }) => {
-    if (!isOpenAddStudent) return null;
+const EditStudent = ({ id, isOpenEditStudent, onCloseEditStudent }) => {
+    if (!isOpenEditStudent) return null;
 
     const [error, setError] = useState(null);
 
@@ -25,176 +25,163 @@ const addStudent = ({ isOpenAddStudent, onCloseAddStudent }) => {
         longitude: "",
         status: "",
     });
-
+    // useEffect(() => {
+    //     const fetchStudent = async () => {
+    //         try {
+    //             if (id) {
+    //                 const student = await getStudentById(id);
+    //                 setFormData({
+    //                     student_id: student.student_id || "",
+    //                     first_name: student.first_name || "",
+    //                     last_name: student.last_name || "",
+    //                     age: student.age || "",
+    //                     gender: student.gender || "",
+    //                     address: student.address || "",
+    //                     latitude: student.latitude || "",
+    //                     longitude: student.longitude || "",
+    //                     status: student.status || "",
+    //                 });
+    //             }
+    //         } catch (error) {
+    //             setError("Failed to fetch student data.");
+    //         }
+    //     };
+    //     fetchStudent();
+    // }, [id]);
 
     const handleInputChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    //insert data student
-    const handleSubmit = async (e) => {
+    // update data student
+    const handleUpdate = async (e) => {
         e.preventDefault();
 
         try {
-            const auth = getAuth();
-            const user = auth.currentUser;
-
-            if (!user) throw new Error("User is not logged in");
-
-            const idToken = await user.getIdToken();
-            console.log("JWT Token:", idToken);
-
-            const response = await fetch(`${apiBaseUrl}/api/students`, {
-                method: "POST",
-                headers: {
-                    Authorization: `Bearer ${idToken}`,
-                },
-                body: JSON.stringify({
-                    student_id: "654987",
-                    first_name: formData.first_name,
-                    last_name: formData.last_name,
-                    age: formData.age,
-                    gender: formData.gender,
-                    address: formData.address,
-                    latitude: formData.latitude,
-                    longitude: formData.longitude,
-                    status: formData.status,
-                }),
-            });
-            if (!response.ok) {
-                throw new Error('Failed to submit the data. Please try again.')
-            }
-
-            // Handle response if necessary
-            const data = await response.json();
-            console.log("API Response:", data);
-            // ...
-
-            onCloseAddStudent();
+            const result = await updateStudent(id, formData);
+            console.log('Update Student:', result);
+            onCloseEditStudent();
         } catch (error) {
             // Capture the error message to display to the user
-            setError(error.message)
-            console.error(error)
+            setError(error.message);
+            console.error('Update failed:', error);
         }
-    }
+    };
+
     return (
         <div
-            className={`${isOpenAddStudent ? "fixed" : "hidden"
+            className={`${isOpenEditStudent ? "fixed" : "hidden"
                 } overflow-y-auto overflow-x-hidden fixed inset-0 bg-gray-600 bg-opacity-50 z-50  h-full w-full flex items-center justify-center`}
         >
             <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl relative z-50 max-h-[90vh] overflow-y-auto">
                 <div className=" sm:rounded-lg  flex flex-col justify-center">
                     {/* <div className="flex min-h-full flex-1 flex-col justify-center px-4 py-8 lg:py-12"> */}
-                    <Link href="" onClick={onCloseAddStudent} className={style.link}>
+                    <Link href="" onClick={onCloseEditStudent} className={style.link}>
                         <div className='flex'>
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6 pb-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
                             </svg>
-                            <div className='ml-1'>
+                            <div className='ml-2'>
                                 Back to Student
                             </div>
                         </div>
                     </Link>
                     <div className="py-8">
                         <h2 className={style.title}>
-                            Add Student
+                            Edit
                         </h2>
                         <div className={style.p}>
-                            Fill out the form below to add a new student to the system.
+                            Edit the student's details, including name and home address
                         </div>
                     </div>
-
-                    <form onSubmit={handleSubmit} className="grid grid-cols-6 gap-6">
+                    {/* onSubmit={handleUpdate} */}
+                    <form onSubmit={handleUpdate} className="grid grid-cols-6 gap-6">
                         <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
                             <label htmlFor="first_name" >
                                 First Name
                             </label>
                             <div className={style.input_placeholder_email}>
                                 <input
-                                    id="FirstName"
+                                    type="text"
                                     name="first_name"
+                                    value={formData.first_name}
                                     onChange={handleInputChange}
                                     className={style.input_email}
-                                    required
                                 />
                             </div>
                         </div>
 
                         <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
-                            <label htmlFor="LastName" >
+                            <label htmlFor="last_name" >
                                 Last Name
                             </label>
                             <div className={style.input_placeholder_email}>
                                 <input
                                     type="text"
-                                    id="LastName"
                                     name="last_name"
+                                    value={formData.last_name}
                                     onChange={handleInputChange}
                                     className={style.input_email}
-                                    required
                                 />
                             </div>
                         </div>
 
                         <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
-                            <label htmlFor="Age" >
+                            <label htmlFor="age" >
                                 Age
                             </label>
                             <div className={style.input_placeholder_email}>
                                 <input
                                     type="text"
-                                    id="Age"
                                     name="age"
+                                    value={formData.age}
                                     onChange={handleInputChange}
                                     className={style.input_email}
-                                    required
                                 />
                             </div>
                         </div>
 
                         <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
-                            <label htmlFor="Gender" >
+                            <label htmlFor="gender">
                                 Gender
                             </label>
                             <select
-                                id="Gender"
                                 name="gender"
                                 className={`${style.select} block`}
+                                value={formData.gender} // Default to an empty string if no value is set
                                 onChange={handleInputChange}
-                                required
                             >
-                                <option value="">Select gender</option>
-                                <option value="male">male</option>
-                                <option value="female">Female</option>
+                                <option value="">Select gender</option> {/* Use an empty value for the default option */}
+                                <option value="male">Male</option>
+                                <option value="female">Female</option> {/* Ensure consistent casing */}
                             </select>
                         </div>
 
+
                         <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
-                            <label htmlFor="HomeAddress" >
+                            <label htmlFor="address" >
                                 Home Address
                             </label>
                             <div className={style.input_placeholder_email}>
                                 <input
                                     type="text"
-                                    id="HomeAddress"
                                     name="address"
-                                    onChange={handleInputChange}
                                     className={style.input_email}
-                                    required
+                                    value={formData.address}
+                                    onChange={handleInputChange}
                                 />
                             </div>
                         </div>
 
                         <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
-                            <label htmlFor="Status" >
+                            <label htmlFor="status" >
                                 Status
                             </label>
                             <select
-                                id="Status"
                                 name="status"
                                 className={`${style.select} block`}
+                                value={formData.status}
                                 onChange={handleInputChange}
-                                required
                             >
                                 <option value="">Select status</option>
                                 <option value="1">1</option>
@@ -203,33 +190,31 @@ const addStudent = ({ isOpenAddStudent, onCloseAddStudent }) => {
                         </div>
 
                         <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
-                            <label htmlFor="Latitude" >
+                            <label htmlFor="latitude" >
                                 Latitude
                             </label>
                             <div className={style.input_placeholder_email}>
                                 <input
                                     type="text"
-                                    id="Latitude"
                                     name="latitude"
+                                    value={formData.latitude}
                                     onChange={handleInputChange}
                                     className={style.input_email}
-                                    required
                                 />
                             </div>
                         </div>
 
                         <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
-                            <label htmlFor="Longitude" >
+                            <label htmlFor="longitude" >
                                 Longitude
                             </label>
                             <div className={style.input_placeholder_email}>
                                 <input
                                     type="text"
-                                    id="Longitude"
                                     name="longitude"
+                                    value={formData.longitude}
                                     onChange={handleInputChange}
                                     className={style.input_email}
-                                    required
                                 />
                             </div>
                         </div>
@@ -239,7 +224,7 @@ const addStudent = ({ isOpenAddStudent, onCloseAddStudent }) => {
                                 type="submit"
                                 className={style.btn_add}
                             >
-                                Add Student
+                                Save
                             </button>
                         </div>
                     </form>
@@ -250,4 +235,4 @@ const addStudent = ({ isOpenAddStudent, onCloseAddStudent }) => {
     );
 };
 
-export default addStudent;
+export default EditStudent;

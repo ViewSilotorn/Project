@@ -1,30 +1,91 @@
-import axios from 'axios';
+import { getAuth } from "firebase/auth";
+const host = process.env.NEXT_PUBLIC_API_HOST;
+const port = process.env.NEXT_PUBLIC_API_PORT;
 
-const API_BASE_URL = 'http://192.168.3.251:8080/api';
+// สร้าง base URL
+const apiBaseUrl = `${host}:${port}`;
 
-export const fetchPageData = async (page) => {
+export const fetchStudents = async (currentPage) => {
     try {
-        const response = await axios.get(`${API_BASE_URL}/students/page/${page}`);
-        return response.data;
+        const auth = getAuth();
+        const user = auth.currentUser;
+
+        if (!user) throw new Error("User is not logged in");
+
+        const idToken = await user.getIdToken();
+        console.log("JWT Token:", idToken);
+
+        const response = await fetch(`${apiBaseUrl}/api/students/page/${currentPage}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${idToken}`,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch students');
+        }
+
+        const data = await response.json();
+        return data; // Return the data to the caller
     } catch (error) {
-        console.error('Error Page data', error);
+        console.error(error);
+        throw error; // Re-throw error to handle in the calling component
+    }
+};
+
+// ฟังก์ชันสำหรับการดึงข้อมูลนักเรียนตาม ID
+export const getStudentById = async (id) => {
+    try {
+        const auth = getAuth();
+        const user = auth.currentUser;
+
+        if (!user) throw new Error("User is not logged in");
+
+        const idToken = await user.getIdToken();
+        const response = await fetch(`${apiBaseUrl}/api/students/${id}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${idToken}`, // Add Authorization header
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch student data');
+        }
+        return await response.json();
+    } catch (error) {
         throw error;
     }
-}
+};
 
-//  useEffect(() => {
-//         const fetchDataStudent = async () => {
-//             try {
-//                 const data = await fetchPageData(currentPage);
-//                 console.log('Loaded Trips:', data); // ตรวจสอบข้อมูล
-//                 setStudents(data.students);  // ตั้งค่าข้อมูลนักเรียน
-//                 setTotalCount(data.total_count);  // ตั้งค่าจำนวนรวมของนักเรียน
-//                 setPerPage(data.per_page);  // ตั้งค่าจำนวนนักเรียนต่อหน้า
-//             } catch (error) {
-//                 console.error("Error fetching student data:", error);
-//                 setError(error.message);
-//             }
-//         };
+// ฟังก์ชันสำหรับการอัปเดตข้อมูลนักเรียน
+export const updateStudent = async (id, formData) => {
+    try {
+        const auth = getAuth();
+        const user = auth.currentUser;
 
-//         fetchDataStudent();
-//     }, [currentPage]);
+        if (!user) throw new Error("User is not logged in");
+
+        const idToken = await user.getIdToken();
+        const response = await fetch(`${apiBaseUrl}/api/students/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${idToken}`, // Add Authorization header
+            },
+            body: JSON.stringify(formData),
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            return result; // ส่งคืนผลลัพธ์เมื่ออัปเดตสำเร็จ
+        } else {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Failed to update student');
+        }
+    } catch (error) {
+        throw error;
+    }
+};

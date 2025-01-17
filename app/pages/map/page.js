@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState, r } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from 'next/navigation';
 import Map from "../../components/Map";
 import Image from 'next/image';
-import st from '../../css/repass.module.css'
 import { getAuth, signOut, onAuthStateChanged, sendPasswordResetEmail } from "firebase/auth";
 import app from "../../../config.js";
 import Link from 'next/link';
+import st from '../../css/repass.module.css'
 
 // componets
 import HomeToSchools from "../../components/HomeToSchools";
@@ -17,12 +18,24 @@ import Logo from '../../Image/Logo.png'
 import Modal from "../../components/Modal";
 
 export default function MapPage() {
+    const [isOpen, setIsOpen] = useState(false); // จัดการสถานะของ Sidebar
     const [isDropdownOpen, setDropdownOpen] = useState(false); // State for Dropdown
-    const [isDropdownOpenRoutes, setDropdownOpenRoutes] = useState(false); // State for Dropdown
     const [isSidebarOpen, setSidebarOpen] = useState(false); // State for Sidebar
-    const [isAdditionalSidebarOpen, setIsAdditionalSidebarOpen] = useState(false); // State สำหรับ Sidebar ที่สอง
-
+    const [activeLink, setActiveLink] = useState("");
     const [activeComponent, setActiveComponent] = useState(null);
+    const auth = getAuth(app);
+    const router = useRouter();
+    const [showPopupReset, setShowPopupReset] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [user, setUser] = useState(null);
+    const [emailForPasswordReset, setEmailForPasswordReset] = useState("");
+
+    const closeModal = () => setIsModalOpen(false);
+
+    const openModal = () => {
+        setShowPopupReset(false);
+        setIsModalOpen(true);
+    }
 
     const toggleDropdown = () => {
         setDropdownOpen(!isDropdownOpen);
@@ -32,281 +45,97 @@ export default function MapPage() {
         setSidebarOpen(!isSidebarOpen);
     };
 
-    const toggleDropdownRoutes = () => {
-        setDropdownOpenRoutes(!isDropdownOpenRoutes);
-    };
-
-    const toggleAdditionalSidebar = () => {
-        setIsAdditionalSidebarOpen(!isAdditionalSidebarOpen);
-    };
-
     const toggleComponent = (componentName) => {
         setActiveComponent((prev) =>
             prev === componentName ? null : componentName
-        ); // ถ้าค่าปัจจุบันตรงกับคอมโพเนนต์ที่เลือก ให้ตั้งค่าเป็น null
+        );
+        setActiveLink(componentName); // ถ้าค่าปัจจุบันตรงกับคอมโพเนนต์ที่เลือก ให้ตั้งค่าเป็น null
     };
 
-    const [dateTime, setDateTime] = useState(null);
-    useEffect(() => {
-        setDateTime(new Date());
-        const interval = setInterval(() => {
-            setDateTime(new Date());
-        }, 1000);
-        return () => clearInterval(interval);
-    }, []);
+    const toggleNav = () => {
+        if (window.innerWidth <= 640) {
+            setIsOpen(!isOpen);
+        }
+    };
 
-    if (!dateTime) {
-        // แสดงค่าเริ่มต้นหรือสถานะโหลด
-        return <p className="text-gray-800 font-bold">Loading...</p>;
-    }
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (user) {
+                setUser(user);
+            } else {
+                setUser(null);
+                router.push("/pages/signUp"); // Redirect if not logged in
+            }
+        });
+
+        return () => unsubscribe();
+    }, [auth, router]);
+
+    const handleSignOut = async () => {
+        try {
+            await signOut(auth);
+            router.push("/"); // Redirect to the home page after sign out
+        } catch (error) {
+            console.error("Error signing out:", error.message);
+        }
+    };
+
+    const handlePasswordResetRequest = async (e) => {
+        e.preventDefault();
+        console.log("email");
+
+        if (!emailForPasswordReset) {
+            alert("Please enter your email address.");
+            console.log(emailForPasswordReset);
+
+            return;
+        }
+
+        try {
+            await sendPasswordResetEmail(auth, emailForPasswordReset);
+            // alert("Password reset email sent! Please check your inbox.");
+            openModal(true)
+            setShowPopupReset(false); // Close the modal after sending the reset email
+        } catch (error) {
+            alert("Error sending password reset email: " + error.message);
+        }
+
+    };
+
+    // const [dateTime, setDateTime] = useState(null);
+    // useEffect(() => {
+    //     setDateTime(new Date());
+    //     const interval = setInterval(() => {
+    //         setDateTime(new Date());
+    //     }, 1000);
+    //     return () => clearInterval(interval);
+    // }, []);
+
+    // if (!dateTime) {
+    //     // แสดงค่าเริ่มต้นหรือสถานะโหลด
+    //     return <p className="text-gray-800 font-bold">Loading...</p>;
+    // }
 
 
 
     return (
         <>
-            {/* <nav className="fixed top-0 z-50 w-full bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-                <div className="px-3 py-3 lg:px-5 lg:pl-3">
-                    <div className="flex items-center justify-between">
-                         Left Section 
-                        <div className="flex items-center justify-start rtl:justify-end">
-                            <button
-                                onClick={toggleSidebar}
-                                aria-controls="logo-sidebar"
-                                type="button"
-                                className="inline-flex items-center p-2 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
-                            >
-                                <span className="sr-only">Open sidebar</span>
-                                <svg
-                                    className="w-6 h-6"
-                                    aria-hidden="true"
-                                    fill="currentColor"
-                                    viewBox="0 0 20 20"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                >
-                                    <path
-                                        clipRule="evenodd"
-                                        fillRule="evenodd"
-                                        d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"
-                                    ></path>
-                                </svg>
-                            </button>
-                            <a className="flex ms-2 md:me-24">
-                                <Image
-                                    src={Logo}
-                                    alt="FlowBite Logo"
-                                    width={32} // กำหนดความกว้าง
-                                    height={32} // กำหนดความสูง
-                                    className="h-8 me-3"
-                                />
-                                <span className="self-center text-sm font-semibold sm:text-sm whitespace-nowrap dark:text-white">
-                                    RouteWise
-                                </span>
-                            </a>
-                        </div>
-
-                        Right Section
-                        <div className="flex items-center">
-                            <p className="text-gray-500 font-bold text-[10px] sm:text-sm md:text-xl">
-                                {dateTime.toLocaleString("en-US", {
-                                    month: "short", // เช่น Jan
-                                    day: "numeric", // เช่น 10
-                                    year: "numeric", // เช่น 2025
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                    second: "2-digit",
-                                    hour12: true,
-                                })}
-                            </p>
-                            <div className="flex items-center ms-3">
-                                <div>
-
-                                    <button
-                                        onClick={toggleDropdown}
-                                        type="button"
-                                        className="flex text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600"
-                                    >
-                                        <span className="sr-only">Open user menu</span>
-                                        <img
-                                            className="w-8 h-8 rounded-full"
-                                            src="https://flowbite.com/docs/images/people/profile-picture-5.jpg"
-                                            alt="user photo"
-                                        />
-                                    </button>
-                                </div>
-                                Dropdown Menu
-                                {isDropdownOpen && (
-                                    <div className="absolute right-5 top-5 mt-10 z-50 w-48 bg-white divide-y divide-gray-100 rounded shadow dark:bg-gray-700 dark:divide-gray-600">
-                                        <div className="px-4 py-3">
-                                            <p className="text-sm text-gray-900 dark:text-white">
-                                                Neil Sims
-                                            </p>
-                                            <p className="text-sm font-medium text-gray-900 truncate dark:text-gray-300">
-                                                neil.sims@flowbite.com
-                                            </p>
-                                        </div>
-                                        <ul className="py-1">
-                                            <li>
-                                                <a
-                                                    href="#"
-                                                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white"
-                                                >
-                                                    Dashboard
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a
-                                                    href="#"
-                                                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white"
-                                                >
-                                                    Settings
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a
-                                                    href="#"
-                                                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white"
-                                                >
-                                                    Sign out
-                                                </a>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </nav> */}
-
-            {/* Sidebar main */}
-            {/* <aside
-                id="logo-sidebar"
-                className={`fixed top-0 left-0 z-40 w-64 h-screen pt-20 transition-transform ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-                    } sm:translate-x-0 bg-white border-r border-gray-200 dark:bg-gray-800 dark:border-gray-700`}
-                aria-label="Sidebar"
-            >
-                <div className="h-full px-3 pb-4 overflow-y-auto bg-white dark:bg-gray-800">
-                    <ul className="space-y-2 font-medium">
-                        <li>
-                            <button
-                                type="button"
-                                className="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
-                                onClick={toggleDropdownRoutes}
-                                aria-expanded={isDropdownOpenRoutes}
-                            >
-                                <svg
-                                    aria-hidden="true"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="currentColor"
-                                    viewBox="0 0 22 21"
-                                    className="w-6 h-6 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
-                                >
-                                    <path d="M10 0a10 10 0 100 20 10 10 0 000-20zm3.78 6.22a.75.75 0 01.072.832l-3.5 7a.75.75 0 01-1.296.078l-3.5-7a.75.75 0 01.962-1.04L10 6.804l2.984-1.456a.75.75 0 01.796.872z" />
-                                </svg>
-                                <span className="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap">
-                                    Find Routes
-                                </span>
-                                <svg
-                                    className={`w-3 h-3 transform transition-transform ${isDropdownOpenRoutes ? "rotate-180" : ""
-                                        }`}
-                                    aria-hidden="true"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 10 6"
-                                >
-                                    <path
-                                        stroke="currentColor"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="m1 1 4 4 4-4"
-                                    />
-                                </svg>
-                            </button>
-                            <ul
-                                className={`py-2 space-y-2 ${isDropdownOpenRoutes ? "" : "hidden"
-                                    }`}
-                            >
-                                <li>
-                                    <a
-                                        onClick={() => toggleComponent('HomeToSchools')}
-                                        className="cursor-pointer flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
-                                    >
-                                        Home To Schools
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        onClick={() => toggleComponent('ButToSchools')}
-                                        className="cursor-pointer flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
-                                    >
-                                        But To Schools
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-                        <li>
-                            <a
-                                onClick={() => toggleComponent('HistoryRoute')}
-                                className="cursor-pointer flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
-                            >
-                                <svg
-                                    className="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
-                                    aria-hidden="true"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="currentColor"
-                                    viewBox="0 0 22 21"
-                                >
-                                    <path d="M12 2.25a9.75 9.75 0 100 19.5 9.75 9.75 0 000-19.5zM11.25 6a.75.75 0 011.5 0v5.25h3a.75.75 0 110 1.5h-3.75a.75.75 0 01-.75-.75V6z" />
-                                </svg>
-                                <span className="ms-3">History Routes</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a
-                                onClick={() => toggleComponent('Student')}
-                                className="cursor-pointer flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
-                            >
-                                <svg
-                                    aria-hidden="true"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="currentColor"
-                                    viewBox="0 0 22 21"
-                                    className="w-6 h-6 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
-                                >
-                                    <path d="M11.7 2.805a.75.75 0 0 1 .6 0A60.65 60.65 0 0 1 22.83 8.72a.75.75 0 0 1-.231 1.337 49.948 49.948 0 0 0-9.902 3.912l-.003.002c-.114.06-.227.119-.34.18a.75.75 0 0 1-.707 0A50.88 50.88 0 0 0 7.5 12.173v-.224c0-.131.067-.248.172-.311a54.615 54.615 0 0 1 4.653-2.52.75.75 0 0 0-.65-1.352 56.123 56.123 0 0 0-4.78 2.589 1.858 1.858 0 0 0-.859 1.228 49.803 49.803 0 0 0-4.634-1.527.75.75 0 0 1-.231-1.337A60.653 60.653 0 0 1 11.7 2.805Z" />
-                                    <path d="M13.06 15.473a48.45 48.45 0 0 1 7.666-3.282c.134 1.414.22 2.843.255 4.284a.75.75 0 0 1-.46.711 47.87 47.87 0 0 0-8.105 4.342.75.75 0 0 1-.832 0 47.87 47.87 0 0 0-8.104-4.342.75.75 0 0 1-.461-.71c.035-1.442.121-2.87.255-4.286.921.304 1.83.634 2.726.99v1.27a1.5 1.5 0 0 0-.14 2.508c-.09.38-.222.753-.397 1.11.452.213.901.434 1.346.66a6.727 6.727 0 0 0 .551-1.607 1.5 1.5 0 0 0 .14-2.67v-.645a48.549 48.549 0 0 1 3.44 1.667 2.25 2.25 0 0 0 2.12 0Z" />
-                                    <path d="M4.462 19.462c.42-.419.753-.89 1-1.395.453.214.902.435 1.347.662a6.742 6.742 0 0 1-1.286 1.794.75.75 0 0 1-1.06-1.06Z" />
-                                </svg>
-                                <span className="flex-1 ms-3 whitespace-nowrap">Students</span>
-                              
-                            </a>
-                        </li>
-                    </ul>
- 
-                </div>
-            </aside> */}
-
-
-
-            <div className="relative">
-                <div className="lg:block">
-                    <button
-                        onClick={toggleSidebar}
-                        aria-controls="logo-sidebar"
-                        type="button"
-                        className="inline-flex items-center p-2 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
-                    >
-                        <span className="sr-only">Open sidebar</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-                        </svg>
-                    </button>
-                </div>
+            <div className="lg:block">
+                <button
+                    onClick={toggleSidebar}
+                    aria-controls="logo-sidebar"
+                    type="button"
+                    className="fixed top-4 left-4 z-40 inline-flex items-center p-3 text-sm text-gray-500 bg-white rounded-2xl sm:hidden"
+                >
+                    {/* <span className="sr-only">Open sidebar</span> */}
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6" aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                    </svg>
+                </button>
             </div>
 
             {/* Sidebar */}
-            <div 
+            <div
                 id="logo-sidebar"
                 className={`fixed top-0 left-0 z-40 w-64 h-screen transition-transform ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"
                     } sm:translate-x-0 bg-white border-r border-gray-200 dark:bg-gray-800 dark:border-gray-700`}
@@ -327,14 +156,14 @@ export default function MapPage() {
                             </span>
                         </a>
 
-                        <div className="lg:block -me-2">
+                        <div className="">
                             <button
                                 onClick={toggleSidebar}
                                 type="button"
                                 className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 absolute top-2.5 end-2.5 inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white"
                             >
                                 <svg
-                                    aria-hidden="true"
+                                    aria-hidden="false"
                                     className="w-5 h-5"
                                     fill="currentColor"
                                     viewBox="0 0 20 20"
@@ -352,108 +181,161 @@ export default function MapPage() {
 
                     </header>
 
-                    <nav className="h-full overflow-y-auto ">
-                        <div className="h-full px-3 pb-4 overflow-y-auto bg-white dark:bg-gray-800">
-                            <ul className="space-y-2 font-medium">
-                                <li>
-                                    <button
-                                        type="button"
-                                        className="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
-                                        onClick={toggleDropdownRoutes}
-                                        aria-expanded={isDropdownOpenRoutes}
-                                    >
-                                        <svg
-                                            aria-hidden="true"
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            fill="currentColor"
-                                            viewBox="0 0 22 21"
-                                            className="w-6 h-6 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
-                                        >
-                                            <path d="M10 0a10 10 0 100 20 10 10 0 000-20zm3.78 6.22a.75.75 0 01.072.832l-3.5 7a.75.75 0 01-1.296.078l-3.5-7a.75.75 0 01.962-1.04L10 6.804l2.984-1.456a.75.75 0 01.796.872z" />
-                                        </svg>
-                                        <span className="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap">
-                                            Find Routes
-                                        </span>
-                                        <svg
-                                            className={`w-3 h-3 transform transition-transform ${isDropdownOpenRoutes ? "rotate-180" : ""
-                                                }`}
-                                            aria-hidden="true"
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            fill="none"
-                                            viewBox="0 0 10 6"
-                                        >
-                                            <path
-                                                stroke="currentColor"
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth="2"
-                                                d="m1 1 4 4 4-4"
-                                            />
-                                        </svg>
-                                    </button>
-                                    <ul
-                                        className={`py-2 space-y-2 ${isDropdownOpenRoutes ? "" : "hidden"
-                                            }`}
-                                    >
-                                        <li>
-                                            <a
-                                                onClick={() => toggleComponent('HomeToSchools')}
-                                                className="cursor-pointer flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
-                                            >
-                                                Home To Schools
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a
-                                                onClick={() => toggleComponent('ButToSchools')}
-                                                className="cursor-pointer flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
-                                            >
-                                                But To Schools
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </li>
+                 
+                        <div className="hs-accordion-group pb-0 px-2 w-full flex flex-col flex-wrap">
+                            <ul className="space-y-1">
                                 <li>
                                     <a
-                                        onClick={() => toggleComponent('HistoryRoute')}
-                                        className="cursor-pointer flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
+                                        onClick={() => {
+                                            toggleComponent('HomeToSchools');
+                                            toggleNav();
+                                        }}
+                                        className={`cursor-pointer flex items-center p-2 rounded-lg
+                                        text-gray-900 dark:text-white
+                                        hover:bg-gray-100 dark:hover:bg-gray-700
+                                        group
+                                        ${activeLink === "HomeToSchools"
+                                                ? "bg-gray-100 dark:bg-gray-700"
+                                                : ""
+                                            }
+                                        `}
                                     >
-                                        <svg
-                                            className="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
-                                            aria-hidden="true"
+                                        {/* <svg
+                                            className="size-4"
                                             xmlns="http://www.w3.org/2000/svg"
-                                            fill="currentColor"
-                                            viewBox="0 0 22 21"
+                                            width="24"
+                                            height="24"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
                                         >
-                                            <path d="M12 2.25a9.75 9.75 0 100 19.5 9.75 9.75 0 000-19.5zM11.25 6a.75.75 0 011.5 0v5.25h3a.75.75 0 110 1.5h-3.75a.75.75 0 01-.75-.75V6z" />
-                                        </svg>
-                                        <span className="ms-3">History Routes</span>
+                                            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                                            <polyline points="9 22 9 12 15 12 15 22" />
+                                        </svg> */}
+                                        <span className="flex-1 ms-3 whitespace-nowrap">Home To Schools</span>
+                                        {/* <span className="inline-flex items-center justify-center px-2 ms-3 text-sm font-medium text-gray-800 bg-gray-100 rounded-full dark:bg-gray-700 dark:text-gray-300">
+                        Pro
+                        </span> */}
                                     </a>
                                 </li>
+
                                 <li>
                                     <a
-                                        onClick={() => toggleComponent('Student')}
-                                        className="cursor-pointer flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
+                                        onClick={() => {
+                                            toggleComponent('ButToSchools');
+                                            toggleNav();
+                                        }}
+                                        className={`cursor-pointer flex items-center p-2 rounded-lg
+                                    text-gray-900 dark:text-white
+                                    hover:bg-gray-100 dark:hover:bg-gray-700
+                                    group
+                                    ${activeLink === "ButToSchools"
+                                                ? "bg-gray-100 dark:bg-gray-700"
+                                                : ""
+                                            }
+                                    `}
                                     >
-                                        <svg
-                                            aria-hidden="true"
+                                        {/* <svg
+                                            className="size-4"
                                             xmlns="http://www.w3.org/2000/svg"
-                                            fill="currentColor"
-                                            viewBox="0 0 22 21"
-                                            className="w-6 h-6 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
+                                            width="24"
+                                            height="24"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
                                         >
-                                            <path d="M11.7 2.805a.75.75 0 0 1 .6 0A60.65 60.65 0 0 1 22.83 8.72a.75.75 0 0 1-.231 1.337 49.948 49.948 0 0 0-9.902 3.912l-.003.002c-.114.06-.227.119-.34.18a.75.75 0 0 1-.707 0A50.88 50.88 0 0 0 7.5 12.173v-.224c0-.131.067-.248.172-.311a54.615 54.615 0 0 1 4.653-2.52.75.75 0 0 0-.65-1.352 56.123 56.123 0 0 0-4.78 2.589 1.858 1.858 0 0 0-.859 1.228 49.803 49.803 0 0 0-4.634-1.527.75.75 0 0 1-.231-1.337A60.653 60.653 0 0 1 11.7 2.805Z" />
-                                            <path d="M13.06 15.473a48.45 48.45 0 0 1 7.666-3.282c.134 1.414.22 2.843.255 4.284a.75.75 0 0 1-.46.711 47.87 47.87 0 0 0-8.105 4.342.75.75 0 0 1-.832 0 47.87 47.87 0 0 0-8.104-4.342.75.75 0 0 1-.461-.71c.035-1.442.121-2.87.255-4.286.921.304 1.83.634 2.726.99v1.27a1.5 1.5 0 0 0-.14 2.508c-.09.38-.222.753-.397 1.11.452.213.901.434 1.346.66a6.727 6.727 0 0 0 .551-1.607 1.5 1.5 0 0 0 .14-2.67v-.645a48.549 48.549 0 0 1 3.44 1.667 2.25 2.25 0 0 0 2.12 0Z" />
-                                            <path d="M4.462 19.462c.42-.419.753-.89 1-1.395.453.214.902.435 1.347.662a6.742 6.742 0 0 1-1.286 1.794.75.75 0 0 1-1.06-1.06Z" />
-                                        </svg>
-                                        <span className="flex-1 ms-3 whitespace-nowrap">Students</span>
+                                            <path d="M4 16c0 .88.39 1.67 1 2.22v1.28c0 .83.67 1.5 1.5 1.5S8 20.33 8 19.5V19h8v.5c0 .82.67 1.5 1.5 1.5c.82 0 1.5-.67 1.5-1.5v-1.28c.61-.55 1-1.34 1-2.22V6c0-3.5-3.58-4-8-4s-8 .5-8 4v10zm3.5 1c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm9 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5s1.5.67 1.5 1.5s-.67 1.5-1.5 1.5zm1.5-6H6V6h12v5z" />
+                                         
+                                        </svg> */}
+                                        <span className="flex-1 ms-3 whitespace-nowrap">Bus To Schools</span>
+                                        {/* <span className="inline-flex items-center justify-center px-2 ms-3 text-sm font-medium text-gray-800 bg-gray-100 rounded-full dark:bg-gray-700 dark:text-gray-300">
+                        Pro
+                        </span> */}
+                                    </a>
+                                </li>
 
+                                <li>
+                                    <a
+                                        onClick={() => {
+                                            toggleComponent('HistoryRoute');
+                                            toggleNav();
+                                        }}
+                                        className={`cursor-pointer flex items-center p-2 rounded-lg
+                                        text-gray-900 dark:text-white
+                                        hover:bg-gray-100 dark:hover:bg-gray-700
+                                        group
+                                        ${activeLink === "HistoryRoute"
+                                                ? "bg-gray-100 dark:bg-gray-700"
+                                                : ""
+                                            }
+                                        `}
+                                    >
+                                        {/* <svg
+                                            className="size-4"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="24"
+                                            height="24"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        >
+                                            <path d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934a1.12 1.12 0 0 1-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689A1.125 1.125 0 0 0 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934a1.12 1.12 0 0 1 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z" />
+                                        </svg> */}
+                                        <span className="flex-1 ms-3 whitespace-nowrap">History Routes</span>
+                                        {/* <span className="inline-flex items-center justify-center px-2 ms-3 text-sm font-medium text-gray-800 bg-gray-100 rounded-full dark:bg-gray-700 dark:text-gray-300">
+                        Pro
+                        </span> */}
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a
+                                        onClick={() => {
+                                            toggleComponent('Student');
+                                            toggleNav();
+                                        }}
+                                        className={`cursor-pointer flex items-center p-2 rounded-lg
+                                                    text-gray-900 dark:text-white
+                                        hover:bg-gray-100 dark:hover:bg-gray-700
+                                        group
+                                        ${activeLink === "Student"
+                                                ? "bg-gray-100 dark:bg-gray-700"
+                                                : ""
+                                            }
+                                        `}
+                                    >
+                                        {/* <svg
+                                            className="size-4"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="24"
+                                            height="24"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        >
+                                            <path d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Zm6-10.125a1.875 1.875 0 1 1-3.75 0a1.875 1.875 0 0 1 3.75 0Zm1.294 6.336a6.721 6.721 0 0 1-3.17.789a6.721 6.721 0 0 1-3.168-.789a3.376 3.376 0 0 1 6.338 0Z" />
+                                        </svg> */}
+                                        <span className="flex-1 ms-3 whitespace-nowrap">Students</span>
+                                        {/* <span className="inline-flex items-center justify-center px-2 ms-3 text-sm font-medium text-gray-800 bg-gray-100 rounded-full dark:bg-gray-700 dark:text-gray-300">
+                        Pro
+                        </span> */}
                                     </a>
                                 </li>
                             </ul>
-
                         </div>
-                    </nav>
+           
 
                     <footer className="mt-auto p-2 border-t border-gray-200 dark:border-neutral-700">
                         <div className=" relative w-full inline-flex">
@@ -464,11 +346,10 @@ export default function MapPage() {
                                     className="w-full inline-flex shrink-0 items-center gap-x-2 p-2 text-start text-sm text-gray-800 rounded-md hover:bg-gray-100 focus:outline-none focus:bg-gray-100 dark:text-neutral-200 dark:hover:bg-neutral-700 dark:focus:bg-neutral-700"
                                 >
                                     <span className="sr-only">Open user menu</span>
-                                    <img
-                                        className="w-8 h-8 rounded-full"
-                                        src="https://flowbite.com/docs/images/people/profile-picture-5.jpg"
-                                        alt="user photo"
-                                    />
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                    </svg>
+
                                     <div>
                                         Mia Hudson
 
@@ -489,7 +370,7 @@ export default function MapPage() {
                                         <a onClick={() => setShowPopupReset(true)} className="flex items-center gap-x-3 py-2 px-3 rounded-lg text-sm text-gray-800 hover:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none focus:outline-none focus:bg-gray-100 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:focus:bg-neutral-800" href="#">
                                             Reset Password
                                         </a>
-                                        <a className="flex items-center gap-x-3 py-2 px-3 rounded-lg text-sm text-gray-800 hover:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none focus:outline-none focus:bg-gray-100 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:focus:bg-neutral-800" href="#">
+                                        <a onClick={handleSignOut} className="flex items-center gap-x-3 py-2 px-3 rounded-lg text-sm text-gray-800 hover:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none focus:outline-none focus:bg-gray-100 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:focus:bg-neutral-800" >
                                             Sign out
                                         </a>
                                     </div>
@@ -503,7 +384,7 @@ export default function MapPage() {
 
             </div>
             {/* Popup Reset */}
-            {/* {showPopupReset && (
+            {showPopupReset && (
                 <div className={`${st.root_login} fixed inset-0  bg-black bg-opacity-50 z-50`}>
                     <main className={st.card}>
                         <div className="flex  flex-1 flex-col justify-center px-6 py-12 lg:px-8">
@@ -516,7 +397,7 @@ export default function MapPage() {
                                 </div>
                             </div>
                             <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-sm">
-                                <form className="space-y-6">
+                                <form onSubmit={handlePasswordResetRequest} className="space-y-6">
                                     <div className={st.text_email}>
                                         <label htmlFor="email">
                                             Work email
@@ -558,7 +439,7 @@ export default function MapPage() {
                 </div>
             )}
             <Modal isOpen={isModalOpen} onClose={closeModal}>
-            </Modal> */}
+            </Modal>
 
 
             {/* Additional Sidebar */}

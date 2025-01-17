@@ -99,7 +99,7 @@
 
 .input_email {
     /* UI Properties */
-    width: 400px;
+    width: 100%;
     height: 40px;
     /* UI Properties */
     background: var(--unnamed-color-ffffff) 0% 0% no-repeat padding-box;
@@ -197,7 +197,7 @@
 }
 
 .select {
-    width: 400px;
+    width: 100%;
     height: 40px;
     /* UI Properties */
     background: var(--unnamed-color-ffffff) 0% 0% no-repeat padding-box;
@@ -210,6 +210,6 @@
     opacity: 1;
 }
 
-select:focus {
+.select:focus {
     border: 2px solid #007BFF;
 }

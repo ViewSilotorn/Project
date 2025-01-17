@@ -106,9 +106,14 @@ const drawRoute = async (map, coordinates, routeId, color) => {
     }
 };
 
+const host = process.env.NEXT_PUBLIC_API_HOST;
+const port = process.env.NEXT_PUBLIC_API_PORT;
+// สร้าง base URL
+const apiBaseUrl = `${host}:${port}`;
+
 const fetchMarkers = async (idToken) => {
     try {
-        const response = await fetch('http://192.168.3.251:8080/api/students', {
+        const response = await fetch(`${apiBaseUrl}/api/students`, {
             headers: {
                 'Authorization': `Bearer ${idToken}`, // ส่ง token ใน headers
                 'Content-Type': 'application/json',
