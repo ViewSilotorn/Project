@@ -10,7 +10,7 @@ const port = process.env.NEXT_PUBLIC_API_PORT;
 // สร้าง base URL
 const apiBaseUrl = `${host}:${port}`;
 
-const addStudent = ({ isOpenAddStudent, onCloseAddStudent }) => {
+const addStudent = ({ isOpenAddStudent, onCloseAddStudent}) => {
     if (!isOpenAddStudent) return null;
 
     const [error, setError] = useState(null);
@@ -164,7 +164,7 @@ const addStudent = ({ isOpenAddStudent, onCloseAddStudent }) => {
                                 required
                             >
                                 <option value="">Select gender</option>
-                                <option value="male">male</option>
+                                <option value="Male">Male</option>
                                 <option value="female">Female</option>
                             </select>
                         </div>

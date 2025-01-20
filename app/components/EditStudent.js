@@ -1,9 +1,9 @@
 "use client";
 import style from '../css/side.module.css';
 import Link from 'next/link';
-import { useState, useEffect } from "react";
+import { useState, useEffect ,useRef} from "react";
 import { getAuth } from "firebase/auth";
-import { getStudentById, updateStudent } from '../services/studentService';
+import { getStudentById , updateDataById } from '../services/studentService';
 const host = process.env.NEXT_PUBLIC_API_HOST;
 const port = process.env.NEXT_PUBLIC_API_PORT;
 
@@ -12,8 +12,6 @@ const apiBaseUrl = `${host}:${port}`;
 
 const EditStudent = ({ id, isOpenEditStudent, onCloseEditStudent }) => {
     if (!isOpenEditStudent) return null;
-
-    const [error, setError] = useState(null);
 
     const [formData, setFormData] = useState({
         first_name: "",
@@ -25,29 +23,37 @@ const EditStudent = ({ id, isOpenEditStudent, onCloseEditStudent }) => {
         longitude: "",
         status: "",
     });
-    // useEffect(() => {
-    //     const fetchStudent = async () => {
-    //         try {
-    //             if (id) {
-    //                 const student = await getStudentById(id);
-    //                 setFormData({
-    //                     student_id: student.student_id || "",
-    //                     first_name: student.first_name || "",
-    //                     last_name: student.last_name || "",
-    //                     age: student.age || "",
-    //                     gender: student.gender || "",
-    //                     address: student.address || "",
-    //                     latitude: student.latitude || "",
-    //                     longitude: student.longitude || "",
-    //                     status: student.status || "",
-    //                 });
-    //             }
-    //         } catch (error) {
-    //             setError("Failed to fetch student data.");
-    //         }
-    //     };
-    //     fetchStudent();
-    // }, [id]);
+
+    useEffect(() => {
+        
+        const fetchStudent = async () => {
+            try {
+                if (id) {
+                    const student = await getStudentById(id);
+                    if (student.gender == 'Male') {
+                        student.gender = 'Male';
+                    }
+                    else {
+                        student.gender = 'Female';
+                    }
+                
+                    setFormData({
+                        first_name: student.first_name || "",
+                        last_name: student.last_name || "",
+                        age: student.age || "",
+                        gender: student.gender || "",
+                        address: student.address || "",
+                        latitude: student.latitude || "",
+                        longitude: student.longitude || "",
+                        status: student.status || "",
+                    });
+                }
+            } catch (error) {
+                setError("Failed to fetch student data.");
+            }
+        };
+        fetchStudent();
+    }, [id]);
 
     const handleInputChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -56,9 +62,8 @@ const EditStudent = ({ id, isOpenEditStudent, onCloseEditStudent }) => {
     // update data student
     const handleUpdate = async (e) => {
         e.preventDefault();
-
         try {
-            const result = await updateStudent(id, formData);
+            const result = await updateDataById(id, formData);
             console.log('Update Student:', result);
             onCloseEditStudent();
         } catch (error) {
@@ -94,144 +99,144 @@ const EditStudent = ({ id, isOpenEditStudent, onCloseEditStudent }) => {
                             Edit the student's details, including name and home address
                         </div>
                     </div>
-                    {/* onSubmit={handleUpdate} */}
-                    <form onSubmit={handleUpdate} className="grid grid-cols-6 gap-6">
-                        <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
-                            <label htmlFor="first_name" >
-                                First Name
-                            </label>
-                            <div className={style.input_placeholder_email}>
-                                <input
-                                    type="text"
-                                    name="first_name"
-                                    value={formData.first_name}
-                                    onChange={handleInputChange}
-                                    className={style.input_email}
-                                />
+                        < form onSubmit={handleUpdate} className="grid grid-cols-6 gap-6">
+                            <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
+                                <label htmlFor="first_name" >
+                                    First Name
+                                </label>
+                                <div className={style.input_placeholder_email}>
+                                    <input
+                                        type="text"
+                                        name="first_name"
+                                        value={formData?.first_name || ''}
+                                        onChange={handleInputChange}
+                                        className={style.input_email}
+                                    />
+                                </div>
                             </div>
-                        </div>
 
-                        <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
-                            <label htmlFor="last_name" >
-                                Last Name
-                            </label>
-                            <div className={style.input_placeholder_email}>
-                                <input
-                                    type="text"
-                                    name="last_name"
-                                    value={formData.last_name}
-                                    onChange={handleInputChange}
-                                    className={style.input_email}
-                                />
+                            <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
+                                <label htmlFor="last_name" >
+                                    Last Name
+                                </label>
+                                <div className={style.input_placeholder_email}>
+                                    <input
+                                        type="text"
+                                        name="last_name"
+                                        value={formData?.last_name || ''} 
+                                        onChange={handleInputChange}
+                                        className={style.input_email}
+                                    />
+                                </div>
                             </div>
-                        </div>
 
-                        <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
-                            <label htmlFor="age" >
-                                Age
-                            </label>
-                            <div className={style.input_placeholder_email}>
-                                <input
-                                    type="text"
-                                    name="age"
-                                    value={formData.age}
-                                    onChange={handleInputChange}
-                                    className={style.input_email}
-                                />
+                            <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
+                                <label htmlFor="age" >
+                                    Age
+                                </label>
+                                <div className={style.input_placeholder_email}>
+                                    <input
+                                        type="text"
+                                        name="age"
+                                        value={formData?.age || ''}
+                                        onChange={handleInputChange}
+                                        className={style.input_email}
+                                    />
+                                </div>
                             </div>
-                        </div>
 
-                        <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
-                            <label htmlFor="gender">
-                                Gender
-                            </label>
-                            <select
-                                name="gender"
-                                className={`${style.select} block`}
-                                value={formData.gender} // Default to an empty string if no value is set
-                                onChange={handleInputChange}
-                            >
-                                <option value="">Select gender</option> {/* Use an empty value for the default option */}
-                                <option value="male">Male</option>
-                                <option value="female">Female</option> {/* Ensure consistent casing */}
-                            </select>
-                        </div>
-
-
-                        <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
-                            <label htmlFor="address" >
-                                Home Address
-                            </label>
-                            <div className={style.input_placeholder_email}>
-                                <input
-                                    type="text"
-                                    name="address"
-                                    className={style.input_email}
-                                    value={formData.address}
+                            <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
+                                <label htmlFor="gender">
+                                    Gender
+                                </label>
+                                <select
+                                    name="gender"
+                                    className={`${style.select} block`}
+                                    value={formData?.gender || ''} // Default to an empty string if no value is set
                                     onChange={handleInputChange}
-                                />
+                                >
+                                    <option value="">Select gender</option> {/* Use an empty value for the default option */}
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option> {/* Ensure consistent casing */}
+                                </select>
                             </div>
-                        </div>
 
-                        <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
-                            <label htmlFor="status" >
-                                Status
-                            </label>
-                            <select
-                                name="status"
-                                className={`${style.select} block`}
-                                value={formData.status}
-                                onChange={handleInputChange}
-                            >
-                                <option value="">Select status</option>
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                            </select>
-                        </div>
 
-                        <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
-                            <label htmlFor="latitude" >
-                                Latitude
-                            </label>
-                            <div className={style.input_placeholder_email}>
-                                <input
-                                    type="text"
-                                    name="latitude"
-                                    value={formData.latitude}
+                            <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
+                                <label htmlFor="address" >
+                                    Home Address
+                                </label>
+                                <div className={style.input_placeholder_email}>
+                                    <input
+                                        type="text"
+                                        name="address"
+                                        className={style.input_email}
+                                        value={formData?.address || ''}
+                                        onChange={handleInputChange}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
+                                <label htmlFor="status" >
+                                    Status
+                                </label>
+                                <select
+                                    name="status"
+                                    className={`${style.select} block`}
+                                    value={formData?.status || ''}
                                     onChange={handleInputChange}
-                                    className={style.input_email}
-                                />
+                                >
+                                    <option value="">Select status</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                </select>
                             </div>
-                        </div>
 
-                        <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
-                            <label htmlFor="longitude" >
-                                Longitude
-                            </label>
-                            <div className={style.input_placeholder_email}>
-                                <input
-                                    type="text"
-                                    name="longitude"
-                                    value={formData.longitude}
-                                    onChange={handleInputChange}
-                                    className={style.input_email}
-                                />
+                            <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
+                                <label htmlFor="latitude" >
+                                    Latitude
+                                </label>
+                                <div className={style.input_placeholder_email}>
+                                    <input
+
+                                        type="text"
+                                        name="latitude"
+                                        value={formData?.latitude || ''}
+                                        onChange={handleInputChange}
+                                        className={style.input_email}
+                                    />
+                                </div>
                             </div>
-                        </div>
 
-                        <div className="col-span-6 justify-end sm:flex sm:items-center sm:gap-4">
-                            <button
-                                type="submit"
-                                className={style.btn_add}
-                            >
-                                Save
-                            </button>
-                        </div>
-                    </form>
+                            <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
+                                <label htmlFor="longitude" >
+                                    Longitude
+                                </label>
+                                <div className={style.input_placeholder_email}>
+                                    <input
+                                        type="text"
+                                        name="longitude"
+                                        value={formData?.longitude || ''}
+                                        onChange={handleInputChange}
+                                        className={style.input_email}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="col-span-6 justify-end sm:flex sm:items-center sm:gap-4">
+                                <button
+                                    type="submit"
+                                    className={style.btn_add}
+                                >
+                                    Save
+                                </button>
+                            </div>
+                        </form>
                     {/* </div> */}
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 

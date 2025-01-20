@@ -61,31 +61,28 @@ export const getStudentById = async (id) => {
 };
 
 // ฟังก์ชันสำหรับการอัปเดตข้อมูลนักเรียน
-export const updateStudent = async (id, formData) => {
-    try {
-        const auth = getAuth();
-        const user = auth.currentUser;
+export const updateDataById = async (id, formData) => {
 
-        if (!user) throw new Error("User is not logged in");
+    console.log(id);
+    console.log(formData);
 
-        const idToken = await user.getIdToken();
-        const response = await fetch(`${apiBaseUrl}/api/students/${id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${idToken}`, // Add Authorization header
-            },
-            body: JSON.stringify(formData),
-        });
 
-        if (response.ok) {
-            const result = await response.json();
-            return result; // ส่งคืนผลลัพธ์เมื่ออัปเดตสำเร็จ
-        } else {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Failed to update student');
-        }
-    } catch (error) {
-        throw error;
+    const auth = getAuth();
+    const user = auth.currentUser;
+
+    if (!user) throw new Error("User is not logged in");
+
+    const idToken = await user.getIdToken();
+    const response = await fetch(`${apiBaseUrl}/api/students/${id}`, {
+        method: 'PUT',
+        headers: {
+            'Authorization': `Bearer ${idToken}`,
+        },
+        body: JSON.stringify(formData),
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch students');
     }
+    return await response.json();
 };

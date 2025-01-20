@@ -27,23 +27,21 @@ export default function StudentSidebar({ isOpen, onClose }) {
   const [selectedUserId, setSelectedUserId] = useState(null);
 
   const [openAddStudent, setOpenAddStudent] = useState(false);
-  const openAddStudentModal = () => setOpenAddStudent(true);
+  const openAddStudentModal = () => setOpenAddStudent(true);//open modal AddStudent
   const closeAddStudentModal = () => setOpenAddStudent(false);
 
   const [openListStudent, setOpenListStudent] = useState(false);
-  const openListStudentModal = () => setOpenListStudent(true);
+  const openListStudentModal = () => setOpenListStudent(true);//open modal Import Student
   const closeListStudentModal = () => setOpenListStudent(false);
 
-  const [openEditStudent, setOpenEditStudent] = useState(false);
-  const openEditStudentModal = (id) => {
-    setSelectedUserId(id);
-    setOpenEditStudent(true);
-};
+  const [sid, setsid] = useState(null);//ส่งid
 
-const closeEditStudentModal = () => {
-    setOpenEditStudent(false);
-    setSelectedUserId(null);
-};
+  const [openEditStudent, setOpenEditStudent] = useState(false);
+  const openEditStudent2 = (id) => {//open modal Edit Student
+    setsid(id);
+    setOpenEditStudent(true)
+  }
+  const closeEditStudentModal = () => setOpenEditStudent(false);
 
 
   //Show student
@@ -63,7 +61,7 @@ const closeEditStudentModal = () => {
     loadStudents();
   }, [currentPage]);
 
-
+  //open modal Delete Student
   const openModalDelete = (id) => {
     setSelectedUserId(id);
     setIsModalDeleteOpen(true);
@@ -74,6 +72,7 @@ const closeEditStudentModal = () => {
     setSelectedUserId(null);
   };
 
+  //delete student on id
   const confirmDelete = async () => {
     if (selectedUserId !== null) {
       await HandleDelete(selectedUserId);
@@ -85,6 +84,43 @@ const closeEditStudentModal = () => {
   const [selectedAll, setSelectedAll] = useState(false);
   const [selectedRows, setSelectedRows] = useState([]);
 
+  // const handleBulkDelete = async (id) => {
+  //   try {
+  //     if (selectedRows.length === 0) {
+  //       alert("Please select items to delete");
+  //       return;
+  //     }
+  
+  //     // ส่งคำขอ DELETE ไปที่ API พร้อมกับ list ของ id ที่เลือก
+  //     const response = await fetch(`${apiBaseUrl}/api/students/${id}`, {
+  //       method: "DELETE",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({ id: selectedRows }),
+  //     });
+  
+  //     const result = await response.json();
+  
+  //     if (response.ok) {
+  //       alert("Selected data deleted successfully");
+  
+  //       // ลบข้อมูลที่เลือกออกจาก UI
+  //       setStudents(prevStudents => prevStudents.filter(student => !selectedRows.includes(student.id)));
+  
+  //       // รีเซ็ต selectedRows
+  //       setSelectedRows([]);
+  //     } else {
+  //       alert("Failed to delete selected data");
+  //       console.error("Failed to delete data:", result);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error occurred:", error);
+  //   }
+  // };
+
+  
+  //check box All
   const handleSelectAll = (e) => {
     const isChecked = e.target.checked;
     setSelectedAll(isChecked);
@@ -95,12 +131,16 @@ const closeEditStudentModal = () => {
     }
   };
 
+
+  //check box on id
   const handleRowSelect = (id) => {
-    setSelectedRows((prevSelected) =>
-      prevSelected.includes(id)
-        ? prevSelected.filter((rowId) => rowId !== id)
-        : [...prevSelected, id]
-    );
+    setSelectedRows((prevSelected) => {
+      if (prevSelected.includes(id)) {
+        return prevSelected.filter((studentId) => studentId !== id);
+      } else {
+        return [...prevSelected, id]
+      }
+    });
   };
 
   const totalPages = Math.ceil(totalCount / perPage);
@@ -115,6 +155,7 @@ const closeEditStudentModal = () => {
     }
   };
 
+  //button next page
   const handleNextPage = () => {
     if (currentPage + maxButtonsToShow <= totalPages) {
       setCurrentPage(currentPage + maxButtonsToShow);
@@ -123,6 +164,7 @@ const closeEditStudentModal = () => {
     }
   };
 
+  //button previous page
   const handlePrev = () => {
     if (currentPage - maxButtonsToShow >= 1) {
       setCurrentPage(currentPage - maxButtonsToShow);
@@ -131,6 +173,7 @@ const closeEditStudentModal = () => {
     }
   };
 
+  //Number on Button
   const pageButtons = [];
   for (let i = startPage; i <= endPage; i++) {
     pageButtons.push(
@@ -145,10 +188,14 @@ const closeEditStudentModal = () => {
     );
   }
 
+  const [searchQuery, setSearchQuery] = useState(''); // State for search input
+  const [loading, setLoading] = useState(false); // Loading state for search
   const [isOpenDropdown, setIsOpenDropdown] = useState(false);
-  const [selectedOption, setSelectedOption] = useState("Soft by");
+  const [selectedOption, setSelectedOption] = useState('');
 
+  //filter
   const options = [
+    "All",
     "By First name",
     "By Last name",
     "By Age",
@@ -158,12 +205,53 @@ const closeEditStudentModal = () => {
     "By Status",
   ];
 
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
   const handleOptionClick = (option) => {
     setSelectedOption(option);
-    // isOpenDropdown(false);
-    // คุณสามารถเพิ่มฟังก์ชันการจัดเรียงข้อมูลที่นี่
-    console.log(`Sorting by: ${option}`);
+    // console.log('Selected option:', option);
+    setIsOpenDropdown(false);
   };
+
+  const handleSearch = async (e) => {
+    e.preventDefault(); // ป้องกันการรีเฟรชหน้า
+    if (!searchQuery.trim()) {
+      alert("Please enter a search query."); // แจ้งเตือนเมื่อไม่กรอกข้อมูล
+      return;
+    }
+
+    setLoading(true); // เริ่มสถานะการโหลด
+    try {
+      const auth = getAuth();
+      const user = auth.currentUser;
+
+      if (!user) throw new Error("User is not logged in");
+
+      const idToken = await user.getIdToken();
+      const response = await fetch(
+        `${apiBaseUrl}/api/students/search?find=${searchQuery}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${idToken}`, // Add Authorization header
+        },
+      }
+      );
+      if (!response.ok) {
+        throw new Error(`Error fetching search results: ${response.status}`);
+      }
+      const data = await response.json();
+
+      setStudents(data); // อัปเดต st
+    } catch (err) {
+      setError(err.message); // แสดงข้อผิดพลาด
+    } finally {
+      setLoading(false); // ปิดสถานะการโหลด
+    }
+  };
+
 
   return (
     <aside
@@ -177,7 +265,6 @@ const closeEditStudentModal = () => {
             <div className="flex flex-col items-start gap-4 md:flex-row md:items-center md:justify-between">
               {/* <div>
                 <h1 className={St.text}>Students</h1>
-
               </div> */}
               <div className="bg-white flex items-center border border-gray-300 rounded-md max-w-sm">
                 <div className="relative flex">
@@ -190,11 +277,15 @@ const closeEditStudentModal = () => {
                     </button>
                   </span>
                   {/* Search input */}
-                  <input
-                    type="text"
-                    placeholder="Search..."
-                    className={`${St.input_search} p-2 rounded-lg w-full`}
-                  />
+                  <form onSubmit={handleSearch}>
+                    <input
+                      type="text"
+                      placeholder="Search..."
+                      value={searchQuery}
+                      onChange={handleSearchChange}
+                      className={`${St.input_search} p-2 rounded-lg w-full`}
+                    />
+                  </form>
 
                   {/* Filter Icon */}
                   <button
@@ -219,9 +310,9 @@ const closeEditStudentModal = () => {
                         {options.map((option) => (
                           <button
                             key={option}
-                            onClick={() => handleOptionClick(option)}  // Update the selected option on click
-                            className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
-                            role="menuitem"
+                            onClick={() => handleOptionClick(option)}  // Update the selected option
+                            className={`block w-full px-4 py-2 text-left text-sm ${selectedOption === option ? "bg-gray-200" : "hover:bg-gray-100"
+                              }`}
                           >
                             {option}
                           </button>
@@ -229,7 +320,6 @@ const closeEditStudentModal = () => {
                       </div>
                     </div>
                   )}
-
                 </div>
               </div>
               <div className="flex flex-wrap gap-4">
@@ -257,7 +347,7 @@ const closeEditStudentModal = () => {
           <div className="flex items-center space-x-4 p-3">
             <button
               className="flex items-center space-x-2 text-red-500 hover:text-red-700"
-              onClick={() => openModalDelete()}
+              onClick={handleBulkDelete}
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
                 <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
@@ -296,45 +386,49 @@ const closeEditStudentModal = () => {
             </thead>
 
             <tbody className={`${St.text_Student} divide-y divide-gray-200`}>
-              {students.map((student) => (
-                <tr key={student.id}>
-                  <td className="w-4 p-4">
-                    <div className="flex items-center">
-                      <input
-                        type="checkbox"
-                        id="SelectAll"
-                        className="size-5 mt-1.5 rounded border-gray-300"
-                        checked={selectedRows.includes(student.id)} onChange={() => handleRowSelect(student.id)} />
-                      <label htmlFor="checkbox-all-search" className="sr-only">checkbox</label>
-                    </div>
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-2">{student.first_name} </td>
-                  <td className="whitespace-nowrap px-4 py-2">{student.last_name}</td>
-                  <td className={`${St.detail_Age} whitespace-nowrap px-4 py-2`}>{student.age}</td>
-                  <td className="whitespace-nowrap px-4 py-2">{student.gender}</td>
-                  <td className="whitespace-nowrap px-4 py-2">{student.address}</td>
-                  <td className={`${St.detail_Lat} whitespace-nowrap px-4 py-2`}>{student.latitude}</td>
-                  <td className={`${St.detail_Lng} whitespace-nowrap px-4 py-2`}>{student.longitude}</td>
-                  <td className={`${St.detail_status} whitespace-nowrap px-4 py-2`}>{student.status}</td>
-                  {/* <td className="sticky inset-y-0 end-0 px-4 py-2"></td> */}
-                  <td className="whitespace-nowrap px-4 py-2">
-                    <div className="flex space-x-2 ">
-                      <button onClick={() => openEditStudentModal(student.id)}>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#007BFF" className="size-6">
-                          <path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32l8.4-8.4Z" />
-                          <path d="M5.25 5.25a3 3 0 0 0-3 3v10.5a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3V13.5a.75.75 0 0 0-1.5 0v5.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5V8.25a1.5 1.5 0 0 1 1.5-1.5h5.25a.75.75 0 0 0 0-1.5H5.25Z" />
-                        </svg>
-                      </button>
-                      <button onClick={() => openModalDelete(student.id)} >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#dc2626" className="size-6">
-                          <path fillRule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z" clipRule="evenodd" />
-                        </svg>
-                      </button>
-                    </div>
-                  </td>
+              {students.length === 0 ? (
+                <tr>
+                  <td colSpan="9" className="text-center py-4">No results found</td>
                 </tr>
-              ))}
+              ) : (
+                students.map((student) => (
+                  <tr key={student.id}>
+                    <td className="w-4 p-4">
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          id="SelectAll"
+                          className="size-5 mt-1.5 rounded border-gray-300"
+                          checked={selectedRows.includes(student.id)} onChange={() => handleRowSelect(student.id)} />
+                        <label htmlFor="checkbox-all-search" className="sr-only">checkbox</label>
+                      </div>
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-2">{student.first_name} </td>
+                    <td className="whitespace-nowrap px-4 py-2">{student.last_name}</td>
+                    <td className={`${St.detail_Age} whitespace-nowrap px-4 py-2`}>{student.age}</td>
+                    <td className="whitespace-nowrap px-4 py-2">{student.gender}</td>
+                    <td className="whitespace-nowrap px-4 py-2">{student.address}</td>
+                    <td className={`${St.detail_Lat} whitespace-nowrap px-4 py-2`}>{student.latitude}</td>
+                    <td className={`${St.detail_Lng} whitespace-nowrap px-4 py-2`}>{student.longitude}</td>
+                    <td className={`${St.detail_status} whitespace-nowrap px-4 py-2`}>{student.status}</td>
+                    {/* <td className="sticky inset-y-0 end-0 px-4 py-2"></td> */}
+                    <td className="whitespace-nowrap px-4 py-2">
+                      <div className="flex space-x-2 ">
+                        <button onClick={() => openEditStudent2(student.id)}>
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="#007BFF" className="size-6">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                          </svg>
+                        </button>
+                        <button onClick={() => openModalDelete(student.id)} >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="#dc2626" className="size-6">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
 
@@ -429,7 +523,7 @@ const closeEditStudentModal = () => {
       </div>
       <AddStudent isOpenAddStudent={openAddStudent} onCloseAddStudent={closeAddStudentModal}></AddStudent>
       <ListStudent isOpenListStudent={openListStudent} onCloseListStudent={closeListStudentModal}></ListStudent>
-      <EditStudent isOpenEditStudent={openEditStudent} onCloseEditStudent={closeEditStudentModal}></EditStudent>
+      <EditStudent isOpenEditStudent={openEditStudent} onCloseEditStudent={closeEditStudentModal} id={sid}></EditStudent>
       <ModalDelete isOpen={isModalDeleteOpen} onClose={closeModalDelete} onConfirm={confirmDelete}></ModalDelete>
     </aside >
   );

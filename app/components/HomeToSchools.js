@@ -55,18 +55,18 @@ export default function HomeToSchoolSidebar({ isOpen, onClose }) {
                                 <div className='sticky top-0 z-10 bg-gray-100'>
                                     <div className="flex flex-col items-start space-y-1 mt-2">
                                         <span className={styles.text_date}>Tuesday, January 2025</span>
-                                        <div className="flex items-center">
+                                        <div className="flex items-center gap-5 sm:gap-10">
                                             <form className="max-w-sm mx-auto mt-3">
                                                 <label htmlFor="number-input" className={`${styles.number} block`}>Number of Bus:</label>
                                                 <input type="number" id="number-input" min="0" className={`${styles.number_input} mt-2 `} required />
                                             </form>
-                                            <form className="max-w-sm mx-auto mt-3 ml-10">
-                                                <label htmlFor="number-input" className={`${styles.number} block`}>Max capacity:</label>
-                                                <input type="number" id="number-input" min="0" className={`${styles.number_input} mt-2 `} required />
+                                            <form className="max-w-sm mx-auto mt-3">
+                                                <label htmlFor="number-input" className={`${styles.max} block`}>Max capacity:</label>
+                                                <input type="number" id="number-input" min="0" className={`${styles.max_input} mt-2 `} required />
                                             </form>
-                                            <form className="max-w-sm mx-auto mt-3 ml-10">
-                                                <label htmlFor="number-input" className={`${styles.number} block`}>Time:</label>
-                                                <input type="number" id="number-input" min="0" className={`${styles.number_input} mt-2 `} required />
+                                            <form className="max-w-sm mx-auto mt-3">
+                                                <label htmlFor="number-input" className={`${styles.time} block`}>Time:</label>
+                                                <input type="number" id="number-input" min="0" className={`${styles.time_input} mt-2 `} required />
                                             </form>
                                         </div>
                                     </div>
@@ -149,7 +149,8 @@ export default function HomeToSchoolSidebar({ isOpen, onClose }) {
                                         </div>
                                     </div>
                                 ))}
-                                <div className="flex flex-1 justify-between py-2">
+                                
+                                <div className="sticky bottom-20 mt-2 bg-gray-100 flex flex-1 justify-between py-2">
                                     <button
                                         onClick={(e) => {
                                             e.preventDefault(); // Prevent default anchor behavior
@@ -184,7 +185,7 @@ export default function HomeToSchoolSidebar({ isOpen, onClose }) {
                                     Optimize Route
                                 </button>
                             </div> */}
-                            <div className="mt-auto sticky bottom-0 flex justify-center bg-[#f9f9f9] border-t border-gray-300 w-ful">
+                            <div className="mt-auto sticky bottom-0 flex justify-center bg-[#f9f9f9] border-t border-gray-300 w-full">
                                 <div className="bg-white w-screen py-3">
                                     <button
                                         className={`${styles.btn_route} mx-auto block bg-blue-500 hover:bg-blue-600 rounded px-4 py-2`}
