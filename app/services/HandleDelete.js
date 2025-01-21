@@ -21,7 +21,6 @@ const HandleDelete = async (id) => {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${idToken}`,
-        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         'id': id

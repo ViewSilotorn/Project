@@ -3,6 +3,7 @@ import styles from '../css/HomeToSchools.module.css';
 import { getAuth } from "firebase/auth";
 import { useState, useEffect, useRef } from "react";
 import { fetchStudents } from '../services/studentService';
+import Link from 'next/link';
 
 export default function HomeToSchoolSidebar({ isOpen, onClose }) {
     if (!isOpen) return null; // ถ้า Sidebar ไม่เปิด ให้คืนค่า null
@@ -13,6 +14,7 @@ export default function HomeToSchoolSidebar({ isOpen, onClose }) {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalCount, setTotalCount] = useState(0);
     const [perPage, setPerPage] = useState(5);
+    // const [downloadData, setDownloadData] = useState(false);
 
     //Show student
     useEffect(() => {
@@ -39,6 +41,10 @@ export default function HomeToSchoolSidebar({ isOpen, onClose }) {
     };
 
     const totalPages = Math.ceil(totalCount / perPage);
+
+    // const toggleDownload = () => {
+    //     setDownloadData(!downloadData);
+    // }
 
     return (
         <aside
@@ -149,7 +155,7 @@ export default function HomeToSchoolSidebar({ isOpen, onClose }) {
                                         </div>
                                     </div>
                                 ))}
-                                
+
                                 <div className="sticky bottom-20 mt-2 bg-gray-100 flex flex-1 justify-between py-2">
                                     <button
                                         onClick={(e) => {
@@ -233,17 +239,19 @@ export default function HomeToSchoolSidebar({ isOpen, onClose }) {
                     <div className="mt-auto sticky bottom-0 flex justify-center bg-[#f9f9f9] border-t border-gray-300 w-ful">
                         <div className="flex bg-white w-screen py-3">
                             <button
-                                className={`${styles.btn_reset } mx-auto block bg-blue-500 rounded px-4 py-2`}
+                                className={`${styles.btn_reset} mx-auto rounded px-4 py-2`}
                             >
                                 Reset
                             </button>
                             <button
+                                // onClick={toggleDownload}
                                 className={`${styles.btn_download} mx-auto block bg-blue-500 rounded px-4 py-2`}
                             >
-                                Download
+                                save
                             </button>
                         </div>
                     </div>
+
                 </div>
 
                 {currentPageHome === 'RoutesNumber' && (
@@ -259,7 +267,7 @@ export default function HomeToSchoolSidebar({ isOpen, onClose }) {
                         </div>
                         <hr className="mb-5"></hr>
                         {students.map((student) => (
-                            <div className='px-3'  key={student.id}>
+                            <div className='px-3' key={student.id}>
                                 <div className={`${styles.card} flex w-full my-2 p-4 max-w-lg flex-col rounded-lg bg-white shadow-sm border border-slate-200 hover:bg-gray-100`}>
                                     <div className="flex items-center gap-4">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#265CB3" className="size-10">
@@ -286,6 +294,80 @@ export default function HomeToSchoolSidebar({ isOpen, onClose }) {
                     </div>
                 )}
             </div>
+            {/* {downloadData && (
+                <div
+                    className="overflow-y-auto overflow-x-hidden fixed inset-0 bg-gray-600 bg-opacity-50 z-50  h-full w-full flex items-center justify-center"
+                >
+                    <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl relative z-50 max-h-[90vh] overflow-y-auto">
+                        <div className=" sm:rounded-lg  flex flex-col justify-center">
+                            <Link href="" className={styles.link}>
+                                <div className='flex'>
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                                    </svg>
+                                    <div className='ml-2'>
+                                        Back to Students
+                                    </div>
+                                </div>
+                            </Link>
+                            <div className="py-8">
+                                <h2 className={styles.title}>
+                                    Download
+                                </h2>
+                                <div className={styles.p}>
+                                    Select the desired route(s) and choose the file format (CSV or Excel) to download the data.
+                                </div>
+                            </div>
+                            <div class="relative flex flex-col">
+                                <nav class="flex min-w-[240px] flex-col gap-1 p-2">
+                                    <div
+                                        role="button"
+                                        className="flex w-full items-center rounded-lg p-0 transition-all "
+                                    >
+                                        <label
+                                            htmlFor="check-vertical-list-group"
+                                            className="flex w-full cursor-pointer items-center px-3 py-2"
+                                        >
+                                            <div className="inline-flex items-center">
+                                                <label className="flex items-center cursor-pointer relative" htmlFor="check-vertical-list-group">
+                                                    <input type="checkbox"
+                                                        className="peer h-5 w-5 cursor-pointer transition-all appearance-none rounded shadow hover:shadow-md border border-sky-600 checked:bg-sky-600 checked:border-sky-600"
+                                                        id="check-vertical-list-group" />
+                                                    <span className="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"
+                                                            stroke="currentColor" strokeWidth="1">
+                                                            <path fillRule="evenodd"
+                                                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                                                clipRule="evenodd"></path>
+                                                        </svg>
+                                                    </span>
+                                                </label>
+                                                <label class="cursor-pointer ml-3 text-slate-600 text-sm" for="check-vertical-list-group">
+                                                    All
+                                                </label>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </nav>
+                            </div>
+                            <div className="flex justify-end gap-2">
+                                <button
+                                    type="submit"
+                                    className={styles.btn_csv}
+                                >
+                                   CSV
+                                </button>
+                                <button
+                                    type="submit"
+                                    className={styles.btn_csv}
+                                >
+                                    Excel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div >
+            )} */}
         </aside>
     );
 }

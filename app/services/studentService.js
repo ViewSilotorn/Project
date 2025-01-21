@@ -86,3 +86,33 @@ export const updateDataById = async (id, formData) => {
     }
     return await response.json();
 };
+
+
+//delete checkbox
+export const deleteStudents = async (id) => {
+    try {
+        const auth = getAuth();
+        const user = auth.currentUser;
+
+        if (!user) throw new Error("User is not logged in");
+
+        const idToken = await user.getIdToken();
+        const response = await fetch(`${apiBaseUrl}/api/students/${id}`, {
+            method: "DELETE",
+            headers: {
+                'Authorization': `Bearer ${idToken}`,
+            },
+            body: JSON.stringify({ id }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || "Failed to delete students");
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error("Error in deleteStudents service:", error);
+        throw error;
+    }
+}

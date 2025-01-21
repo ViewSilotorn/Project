@@ -6,7 +6,7 @@ import AddStudent from "../components/AddStudent"
 import ListStudent from "../components/ListStudent"
 import EditStudent from "../components/EditStudent"
 import ModalDelete from "./ModalDelete";
-import { fetchStudents } from "../services/studentService";
+import { fetchStudents, deleteStudents } from "../services/studentService";
 
 const host = process.env.NEXT_PUBLIC_API_HOST;
 const port = process.env.NEXT_PUBLIC_API_PORT;
@@ -22,13 +22,14 @@ export default function StudentSidebar({ isOpen, onClose }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [perPage, setPerPage] = useState(10);
-  const [isModalDeleteOpen, setIsModalDeleteOpen] = useState(false);
-  const [isEdit, setisEdit] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
 
   const [openAddStudent, setOpenAddStudent] = useState(false);
   const openAddStudentModal = () => setOpenAddStudent(true);//open modal AddStudent
   const closeAddStudentModal = () => setOpenAddStudent(false);
+  //   const handleAddStudents = () => {
+  //     setStudents((prevStudents) => prevStudents.filter((student) => student.id !== selectedUserId));
+  // };
 
   const [openListStudent, setOpenListStudent] = useState(false);
   const openListStudentModal = () => setOpenListStudent(true);//open modal Import Student
@@ -61,6 +62,7 @@ export default function StudentSidebar({ isOpen, onClose }) {
     loadStudents();
   }, [currentPage]);
 
+  const [isModalDeleteOpen, setIsModalDeleteOpen] = useState(false);
   //open modal Delete Student
   const openModalDelete = (id) => {
     setSelectedUserId(id);
@@ -81,67 +83,85 @@ export default function StudentSidebar({ isOpen, onClose }) {
     }
   };
 
-  const [selectedAll, setSelectedAll] = useState(false);
+
   const [selectedRows, setSelectedRows] = useState([]);
 
-  // const handleBulkDelete = async (id) => {
-  //   try {
-  //     if (selectedRows.length === 0) {
-  //       alert("Please select items to delete");
-  //       return;
-  //     }
-  
-  //     // ส่งคำขอ DELETE ไปที่ API พร้อมกับ list ของ id ที่เลือก
-  //     const response = await fetch(`${apiBaseUrl}/api/students/${id}`, {
-  //       method: "DELETE",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify({ id: selectedRows }),
-  //     });
-  
-  //     const result = await response.json();
-  
-  //     if (response.ok) {
-  //       alert("Selected data deleted successfully");
-  
-  //       // ลบข้อมูลที่เลือกออกจาก UI
-  //       setStudents(prevStudents => prevStudents.filter(student => !selectedRows.includes(student.id)));
-  
-  //       // รีเซ็ต selectedRows
-  //       setSelectedRows([]);
-  //     } else {
-  //       alert("Failed to delete selected data");
-  //       console.error("Failed to delete data:", result);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error occurred:", error);
-  //   }
-  // };
-
-  
-  //check box All
+  // Handle "Select All" checkbox
   const handleSelectAll = (e) => {
-    const isChecked = e.target.checked;
-    setSelectedAll(isChecked);
-    if (isChecked) {
+    if (e.target.checked) {
+      // ถ้าเลือกทั้งหมดให้เลือกทุก ID ในหน้าปัจจุบัน
       setSelectedRows(students.map((student) => student.id));
     } else {
+      // ถ้าไม่เลือกทั้งหมดให้ลบการเลือกทั้งหมด
       setSelectedRows([]);
     }
   };
 
+  // Handle individual row selection
+  const handleRowSelect = (id) => {
+    if (selectedRows.includes(id)) {
+      setSelectedRows(selectedRows.filter((rowId) => rowId !== id));
+    } else {
+      setSelectedRows([...selectedRows, id]);
+    }
+  };
+
+  // Handle bulk delete
+  const handleBulkDelete = async () => {
+    if (selectedRows.length === 0) {
+      alert("Please select items to delete");
+      return;
+    }
+
+    const confirmDelete = confirm("Are you sure you want to delete selected items?");
+    if (!confirmDelete) return;
+
+    try {
+      // ลบทีละ ID ใน selectedRows
+      for (const id of selectedRows) {
+        await deleteStudents(id);
+      }
+
+      // อัปเดต UI หลังลบสำเร็จ
+      setStudents((prevStudents) =>
+        prevStudents.filter((student) => !selectedRows.includes(student.id))
+      );
+
+      setSelectedRows([]); // รีเซ็ตการเลือก
+      alert("Selected data deleted successfully");
+    } catch (error) {
+      alert("An error occurred while deleting data.");
+      console.error("Error:", error);
+    }
+  };
+
+
+
+  // const [selectedAll, setSelectedAll] = useState(false);
+  // const [selectedRows, setSelectedRows] = useState([]);
+
+  // //check box All
+  // const handleSelectAll = (e) => {
+  //   const isChecked = e.target.checked;
+  //   setSelectedAll(isChecked);
+  //   if (isChecked) {
+  //     setSelectedRows(students.map((student) => student.id));
+  //   } else {
+  //     setSelectedRows([]);
+  //   }
+  // };
+
 
   //check box on id
-  const handleRowSelect = (id) => {
-    setSelectedRows((prevSelected) => {
-      if (prevSelected.includes(id)) {
-        return prevSelected.filter((studentId) => studentId !== id);
-      } else {
-        return [...prevSelected, id]
-      }
-    });
-  };
+  // const handleRowSelect = (id) => {
+  //   setSelectedRows((prevSelected) => {
+  //     if (prevSelected.includes(id)) {
+  //       return prevSelected.filter((studentId) => studentId !== id);
+  //     } else {
+  //       return [...prevSelected, id]
+  //     }
+  //   });
+  // };
 
   const totalPages = Math.ceil(totalCount / perPage);
   const maxButtonsToShow = 5; // จำนวนปุ่มที่ต้องการแสดง
@@ -252,7 +272,6 @@ export default function StudentSidebar({ isOpen, onClose }) {
     }
   };
 
-
   return (
     <aside
       id="additional-sidebar"
@@ -342,6 +361,7 @@ export default function StudentSidebar({ isOpen, onClose }) {
             </div>
           </div>
         </header>
+        {/* <p><a class="text-blue-600 underline underline-offset-1 decoration-blue-600 hover:opacity-80 focus:outline-none focus:opacity-80 flex justify-end mb-5 mr-2" href="#">Example File</a></p> */}
         {/* Dropdown เมื่อเลือก Checkbox */}
         {selectedRows.length > 0 && (
           <div className="flex items-center space-x-4 p-3">
@@ -367,8 +387,8 @@ export default function StudentSidebar({ isOpen, onClose }) {
                       type="checkbox"
                       id="SelectAll"
                       className="size-5 mt-1.5 rounded border-gray-300"
-                      onChange={handleSelectAll}
                       checked={selectedRows.length > 0 && selectedRows.length === students.length ? true : false}
+                      onChange={handleSelectAll}
                     />
                     <label htmlFor="checkbox-all-search" className="sr-only">checkbox</label>
                   </div>

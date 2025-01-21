@@ -3,11 +3,94 @@ import styles from '../css/nav.module.css';
 import Link from 'next/link';
 import stAddList from '../css/addListStudent.module.css'
 import { useEffect, useState } from "react";
+import Papa from "papaparse"; // สำหรับการอ่านไฟล์ CSV
+import { read, utils } from "xlsx"; // ไลบรารีสำหรับ XLS/XLSX
+
+const host = process.env.NEXT_PUBLIC_API_HOST;
+const port = process.env.NEXT_PUBLIC_API_PORT;
+
+// สร้าง base URL
+const apiBaseUrl = `${host}:${port}`;
 
 const addStudent = ({ isOpenListStudent, onCloseListStudent }) => {
     if (!isOpenListStudent) return null;
 
-    const [addListStudent, setAddListStudent] = useState(false);
+    const [students, setStudents] = useState([]);
+    const [selectedFileName, setSelectedFileName] = useState("");
+    const [StudentsList, setStudentsList] = useState(null);
+
+    const handleFileUpload = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            setSelectedFileName(file.name); // บันทึกชื่อไฟล์
+        }
+    
+        const fileExtension = file.name.split(".").pop().toLowerCase();
+        if (fileExtension === "csv") {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const csvData = e.target.result;
+                Papa.parse(csvData, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: (result) => {
+                        console.log("Parsed CSV Data:", result.data);
+                        setStudents(result.data);
+                    },
+                });
+            };
+            reader.readAsText(file);
+        } else if (fileExtension === "xls" || fileExtension === "xlsx") {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const binaryData = e.target.result;
+                const workbook = read(binaryData, { type: "binary" });
+                const sheetName = workbook.SheetNames[0];
+                const sheetData = utils.sheet_to_json(workbook.Sheets[sheetName]);
+                console.log("Parsed XLS/XLSX Data:", sheetData);
+                setStudents(sheetData);
+            };
+            reader.readAsBinaryString(file);
+        } else {
+            alert("Invalid file type. Please upload a CSV, XLS, or XLSX file.");
+        }
+    };
+    
+    // const handleAddStudent = () => {
+    //     if (students.length === 0) {
+    //         alert("Please upload a file before adding students.");
+    //         return;
+    //     }
+    
+    //     // ส่งข้อมูล students ไปยัง component หน้า Students (ถ้าใช้ state management เช่น Context หรือ Redux)
+    //     setStudentsList((prev) => [...prev, ...students]);
+    
+    //     // หรือส่งไปที่ backend (API)
+    //     students.forEach(async (student) => {
+    //         try {
+    //             const response = await fetch(`${apiBaseUrl}/api/students`, {
+    //                 method: "POST",
+    //                 headers: {
+    //                     "Content-Type": "application/json",
+    //                 },
+    //                 body: JSON.stringify(student),
+    //             });
+    
+    //             if (!response.ok) {
+    //                 const errorData = await response.json();
+    //                 throw new Error(errorData.message || "Failed to add student");
+    //             }
+    
+    //             console.log("Student added successfully");
+    //         } catch (error) {
+    //             console.error("Error adding student:", error.message);
+    //         }
+    //     });
+    
+    //     // ปิด modal และรีเซ็ต state
+    //     onCloseListStudent();
+    // };
+    
 
     return (
         <div
@@ -56,8 +139,17 @@ const addStudent = ({ isOpenListStudent, onCloseListStudent }) => {
                                         </p>
                                         <p>Size limit: 1 MB</p>
                                     </div>
+                                    {selectedFileName && (
+                                         <p className="mt-2 text-sm text-gray-600">Selected file: <span className="font-medium">{selectedFileName}</span></p>
+                                    )}
                                 </div>
-                                <input id="dropzone-file" type="file" className="hidden" />
+                                <input
+                                 id="dropzone-file" 
+                                 type="file" 
+                                 accept=".xls, .xlsx, .csv" 
+                                 className="hidden" 
+                                 onChange={handleFileUpload}
+                                  />
                             </label>
                         </div>
                     </div>

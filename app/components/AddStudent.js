@@ -69,7 +69,6 @@ const addStudent = ({ isOpenAddStudent, onCloseAddStudent}) => {
             const data = await response.json();
             console.log("API Response:", data);
             // ...
-
             onCloseAddStudent();
         } catch (error) {
             // Capture the error message to display to the user
@@ -165,7 +164,7 @@ const addStudent = ({ isOpenAddStudent, onCloseAddStudent}) => {
                             >
                                 <option value="">Select gender</option>
                                 <option value="Male">Male</option>
-                                <option value="female">Female</option>
+                                <option value="Female">Female</option>
                             </select>
                         </div>
 
@@ -190,7 +189,7 @@ const addStudent = ({ isOpenAddStudent, onCloseAddStudent}) => {
                                 Status
                             </label>
                             <select
-                                id="Status"
+                                id="status"
                                 name="status"
                                 className={`${style.select} block`}
                                 onChange={handleInputChange}

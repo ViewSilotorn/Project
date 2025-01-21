@@ -287,34 +287,86 @@
     width: 235px;
     height: 50px;
     /* UI Properties */
-    background: var(--unnamed-color-ffffff) 0% 0% no-repeat padding-box;
-    border: 1.5px solid var(--unnamed-color-fb2c36);
-    background: #FFFFFF 0% 0% no-repeat padding-box;
-    border: 2px solid #FB2C36;
+    background: var(--unnamed-color-fb2c36) 0% 0% no-repeat padding-box;
+    background: #FB2C36 0% 0% no-repeat padding-box;
     border-radius: 7px;
     opacity: 1;
     font: var(--unnamed-font-style-normal) normal var(--unnamed-font-weight-normal) var(--unnamed-font-size-18)/var(--unnamed-line-spacing-22) var(--unnamed-font-family-roboto);
     letter-spacing: var(--unnamed-character-spacing-0);
-    color: var(--unnamed-color-fb2c36);
+    color: var(--unnamed-color-ffffff);
     text-align: center;
     font: normal normal normal 18px/22px Roboto;
     letter-spacing: 0px;
-    color: #FB2C36;
+    color: #FFFFFF;
 }
 
 .btn_download {
     width: 235px;
     height: 50px;
     /* UI Properties */
-    background: var(--unnamed-color-ffffff) 0% 0% no-repeat padding-box;
-    background: #FFFFFF 0% 0% no-repeat padding-box;
-    border: 2px solid #C7C5C5;
-    border-radius: 5px;
+    background: var(--unnamed-color-31c48d) 0% 0% no-repeat padding-box;
+    background: #31C48D 0% 0% no-repeat padding-box;
+    border-radius: 7px;
     opacity: 1;
     font: var(--unnamed-font-style-normal) normal var(--unnamed-font-weight-normal) var(--unnamed-font-size-18)/var(--unnamed-line-spacing-22) var(--unnamed-font-family-roboto);
     letter-spacing: var(--unnamed-character-spacing-0);
+    color: var(--unnamed-color-ffffff);
     text-align: center;
     font: normal normal normal 18px/22px Roboto;
     letter-spacing: 0px;
-    color: #707070;
+    color: #FFFFFF;
+}
+
+.btn_csv {
+    width: 200px;
+    height: 60px;
+    /* UI Properties */
+    background: var(--unnamed-color-ffffff) 0% 0% no-repeat padding-box;
+    background: #FFFFFF 0% 0% no-repeat padding-box;
+    border: 2px solid #707070;
+    border-radius: 7px;
+    opacity: 1;
+    /* UI Properties */
+    font: var(--unnamed-font-style-normal) normal var(--unnamed-font-weight-normal) var(--unnamed-font-size-18)/var(--unnamed-line-spacing-22) var(--unnamed-font-family-roboto);
+    letter-spacing: var(--unnamed-character-spacing-0);
+    color: var(--unnamed-color-000000);
+    text-align: center;
+    font: normal normal normal 18px/22px Roboto;
+    letter-spacing: 0px;
+    color: #000000;
+}
+
+.title {
+    /* UI Properties */
+    font: var(--unnamed-font-style-normal) normal var(--unnamed-font-weight-bold) 30px/39px var(--unnamed-font-family-roboto);
+    color: var(--unnamed-color-1a1a1a);
+    text-align: left;
+    font: normal normal bold 30px/39px Roboto;
+    letter-spacing: 2.64px;
+    color: #1A1A1A;
+    opacity: 1;
+}
+
+.p {
+    /* UI Properties */
+    font: var(--unnamed-font-style-normal) normal var(--unnamed-font-weight-normal) var(--unnamed-font-size-16)/var(--unnamed-line-spacing-21) var(--unnamed-font-family-roboto);
+    letter-spacing: var(--unnamed-character-spacing-0-53);
+    color: var(--unnamed-color-1a1a1a);
+    text-align: left;
+    font: normal normal normal 13.5px/21px Roboto;
+    letter-spacing: 0.53px;
+    color: #1A1A1A;
+    opacity: 1;
+}
+
+.link {
+    /* UI Properties */
+    font: var(--unnamed-font-style-normal) normal var(--unnamed-font-weight-normal) var(--unnamed-font-size-16)/var(--unnamed-line-spacing-21) var(--unnamed-font-family-roboto);
+    letter-spacing: var(--unnamed-character-spacing-0-53);
+    color: var(--unnamed-color-000000);
+    text-align: center;
+    font: normal normal normal 16px/21px Roboto;
+    letter-spacing: 0.53px;
+    color: #000000;
+    opacity: 1;
 }
