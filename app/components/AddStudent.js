@@ -4,16 +4,21 @@ import styles from '../css/nav.module.css';
 import Link from 'next/link';
 import { useState } from "react";
 import { getAuth } from "firebase/auth";
+import { fetchStudents } from "../services/studentService";
+
 const host = process.env.NEXT_PUBLIC_API_HOST;
 const port = process.env.NEXT_PUBLIC_API_PORT;
 
 // สร้าง base URL
 const apiBaseUrl = `${host}:${port}`;
 
-const addStudent = ({ isOpenAddStudent, onCloseAddStudent}) => {
+const addStudent = ({ isOpenAddStudent, onCloseAddStudent , onAddStudent}) => {
     if (!isOpenAddStudent) return null;
 
     const [error, setError] = useState(null);
+    const [students, setStudents] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1); 
+    const [totalCount, setTotalCount] = useState(0);
 
     const [formData, setFormData] = useState({
         first_name: "",
@@ -66,8 +71,9 @@ const addStudent = ({ isOpenAddStudent, onCloseAddStudent}) => {
             }
 
             // Handle response if necessary
-            const data = await response.json();
+            const data = await response.json(); // รอรับ response
             console.log("API Response:", data);
+            
             // ...
             onCloseAddStudent();
         } catch (error) {
@@ -76,6 +82,7 @@ const addStudent = ({ isOpenAddStudent, onCloseAddStudent}) => {
             console.error(error)
         }
     }
+
     return (
         <div
             className={`${isOpenAddStudent ? "fixed" : "hidden"

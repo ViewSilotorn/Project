@@ -74,7 +74,7 @@ export default function Home() {
       // console.log("User logged in:", user);
 
 
-      router.push("/pages/map");
+      router.push("/map");
     } catch (error) {
       // console.error("Error logging in:", error.message);
       // setError("Login failed: " + error.message);
@@ -172,7 +172,7 @@ export default function Home() {
                 Password
               </label>
               <div className={styles.text_fgpass}>
-                <Link href="/pages/forGotPass">
+                <Link href="/forGotPass">
                   Forgot password?
                 </Link>
               </div>
@@ -231,7 +231,7 @@ export default function Home() {
           </button>
         </div>
         <div className={styles.text_account}>
-          Don't have an account? <Link href="/pages/signUp" className={styles.textaccount}>
+          Don't have an account? <Link href="/signUp" className={styles.textaccount}>
             Create account
           </Link>
         </div>

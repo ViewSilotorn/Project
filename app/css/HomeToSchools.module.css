@@ -13,14 +13,14 @@
 .input_search {
     /* Layout Properties */
     width: 100%;
-    height: 40px;
+    height: 50px;
     /* UI Properties */
     background: var(--unnamed-color-ffffff) 0% 0% no-repeat padding-box;
-    border: 1px solid var(--unnamed-color-707070);
     background: #FFFFFF 0% 0% no-repeat padding-box;
-    border: 1px solid #707070;
+    border: 1px solid #C7C5C5;
     border-radius: 5px;
     opacity: 1;
+    outline: none;
 }
 
 .btn {

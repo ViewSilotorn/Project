@@ -7,6 +7,7 @@ import ListStudent from "../components/ListStudent"
 import EditStudent from "../components/EditStudent"
 import ModalDelete from "./ModalDelete";
 import { fetchStudents, deleteStudents } from "../services/studentService";
+import { getAuth } from "firebase/auth";
 
 const host = process.env.NEXT_PUBLIC_API_HOST;
 const port = process.env.NEXT_PUBLIC_API_PORT;
@@ -24,16 +25,21 @@ export default function StudentSidebar({ isOpen, onClose }) {
   const [perPage, setPerPage] = useState(10);
   const [selectedUserId, setSelectedUserId] = useState(null);
 
+  ///////////////////////////Function Insert Student///////////////////////////
+
   const [openAddStudent, setOpenAddStudent] = useState(false);
   const openAddStudentModal = () => setOpenAddStudent(true);//open modal AddStudent
   const closeAddStudentModal = () => setOpenAddStudent(false);
-  //   const handleAddStudents = () => {
-  //     setStudents((prevStudents) => prevStudents.filter((student) => student.id !== selectedUserId));
-  // };
+  // const addStudent = (students) => {
+  //   console.log("Adding Student:", students);
+  //   setStudents((prevStudents) => [...prevStudents, students])
+  // }
 
   const [openListStudent, setOpenListStudent] = useState(false);
   const openListStudentModal = () => setOpenListStudent(true);//open modal Import Student
   const closeListStudentModal = () => setOpenListStudent(false);
+
+  ////////////////////////Function Edit Student/////////////////////////////
 
   const [sid, setsid] = useState(null);//ส่งid
 
@@ -44,23 +50,7 @@ export default function StudentSidebar({ isOpen, onClose }) {
   }
   const closeEditStudentModal = () => setOpenEditStudent(false);
 
-
-  //Show student
-  useEffect(() => {
-    const loadStudents = async () => {
-      try {
-        const data = await fetchStudents(currentPage);
-        console.log(data);
-        setStudents(data.students);  // ตั้งค่าข้อมูลนักเรียน
-        setTotalCount(data.total_count);  // ตั้งค่าจำนวนรวมของนักเรียน
-        setPerPage(data.per_page);  // ตั้งค่าจำนวนนักเรียนต่อหน้า
-      } catch (error) {
-        setError(error.message);
-      }
-    };
-
-    loadStudents();
-  }, [currentPage]);
+  ////////////////////////Function Delete Student/////////////////////////////
 
   const [isModalDeleteOpen, setIsModalDeleteOpen] = useState(false);
   //open modal Delete Student
@@ -83,6 +73,26 @@ export default function StudentSidebar({ isOpen, onClose }) {
     }
   };
 
+  ////////////////////////////////ดึงข้อมูลนักเรียนทั้งหมด//////////////////////////////////////
+  //Show student
+  useEffect(() => {
+    const loadStudents = async () => {
+      try {
+        const data = await fetchStudents(currentPage);
+        console.log(data);
+        setStudents(data.students);  // ตั้งค่าข้อมูลนักเรียน
+        setTotalCount(data.total_count);  // ตั้งค่าจำนวนรวมของนักเรียน
+        setPerPage(data.per_page);  // ตั้งค่าจำนวนนักเรียนต่อหน้า
+      } catch (error) {
+        setError(error.message);
+      }
+    };
+
+    loadStudents();
+  }, [currentPage]);
+
+
+  ///////////////////////////////CheckBox////////////////////////////////////
 
   const [selectedRows, setSelectedRows] = useState([]);
 
@@ -95,6 +105,7 @@ export default function StudentSidebar({ isOpen, onClose }) {
       // ถ้าไม่เลือกทั้งหมดให้ลบการเลือกทั้งหมด
       setSelectedRows([]);
     }
+    console.log("Data deleted successfully");
   };
 
   // Handle individual row selection
@@ -104,6 +115,7 @@ export default function StudentSidebar({ isOpen, onClose }) {
     } else {
       setSelectedRows([...selectedRows, id]);
     }
+    console.log("Data deleted successfully");
   };
 
   // Handle bulk delete
@@ -113,8 +125,8 @@ export default function StudentSidebar({ isOpen, onClose }) {
       return;
     }
 
-    const confirmDelete = confirm("Are you sure you want to delete selected items?");
-    if (!confirmDelete) return;
+    // const confirmDelete = confirm("Are you sure you want to delete selected items?");
+    // if (!confirmDelete) return;
 
     try {
       // ลบทีละ ID ใน selectedRows
@@ -129,41 +141,16 @@ export default function StudentSidebar({ isOpen, onClose }) {
 
       setSelectedRows([]); // รีเซ็ตการเลือก
       alert("Selected data deleted successfully");
+      // setIsModalDeleteOpen(true)
     } catch (error) {
       alert("An error occurred while deleting data.");
       console.error("Error:", error);
     }
   };
 
+  //////////////////////////////////คำนวณจำนวนหน้า/////////////////////////////////////////
 
-
-  // const [selectedAll, setSelectedAll] = useState(false);
-  // const [selectedRows, setSelectedRows] = useState([]);
-
-  // //check box All
-  // const handleSelectAll = (e) => {
-  //   const isChecked = e.target.checked;
-  //   setSelectedAll(isChecked);
-  //   if (isChecked) {
-  //     setSelectedRows(students.map((student) => student.id));
-  //   } else {
-  //     setSelectedRows([]);
-  //   }
-  // };
-
-
-  //check box on id
-  // const handleRowSelect = (id) => {
-  //   setSelectedRows((prevSelected) => {
-  //     if (prevSelected.includes(id)) {
-  //       return prevSelected.filter((studentId) => studentId !== id);
-  //     } else {
-  //       return [...prevSelected, id]
-  //     }
-  //   });
-  // };
-
-  const totalPages = Math.ceil(totalCount / perPage);
+  const totalPages = Math.ceil(totalCount / perPage);//จำนวนหน้าทั้งหมด
   const maxButtonsToShow = 5; // จำนวนปุ่มที่ต้องการแสดง
   const startPage = Math.floor((currentPage - 1) / maxButtonsToShow) * maxButtonsToShow + 1;
   const endPage = Math.min(startPage + maxButtonsToShow - 1, totalPages);
@@ -208,42 +195,39 @@ export default function StudentSidebar({ isOpen, onClose }) {
     );
   }
 
-  const [searchQuery, setSearchQuery] = useState(''); // State for search input
+  //////////////////////////////////Search/////////////////////////////////////
+
+  const [searchQuery, setSearchQuery] = useState(""); // State for search input
   const [loading, setLoading] = useState(false); // Loading state for search
   const [isOpenDropdown, setIsOpenDropdown] = useState(false);
-  const [selectedOption, setSelectedOption] = useState('');
+  const [selectedFilter, setSelectedFilter] = useState('All');
 
   //filter
-  const options = [
-    "All",
-    "By First name",
-    "By Last name",
-    "By Age",
-    "By Home address",
-    "By Latitude",
-    "By Longitude",
-    "By Status",
-  ];
-
+  const filters = ["All" , "first_name", "last_name", "age", "gender", "address"];
 
   const handleSearchChange = (e) => {
+    console.log("Search Query:", e.target.value);  // ตรวจสอบค่าที่พิมพ์
     setSearchQuery(e.target.value);
   };
 
-  const handleOptionClick = (option) => {
-    setSelectedOption(option);
-    // console.log('Selected option:', option);
+  const handleOptionClick = (filter) => {
+    setSelectedFilter(filter);
+    console.log('Selected option:', filter);
     setIsOpenDropdown(false);
   };
+
+  /////////////ดึงข้อมูลการค้นหา////////////////
 
   const handleSearch = async (e) => {
     e.preventDefault(); // ป้องกันการรีเฟรชหน้า
     if (!searchQuery.trim()) {
-      alert("Please enter a search query."); // แจ้งเตือนเมื่อไม่กรอกข้อมูล
+      alert("Please enter a search query.");
       return;
     }
 
     setLoading(true); // เริ่มสถานะการโหลด
+    console.log("Searching for:", searchQuery);
+
     try {
       const auth = getAuth();
       const user = auth.currentUser;
@@ -251,20 +235,32 @@ export default function StudentSidebar({ isOpen, onClose }) {
       if (!user) throw new Error("User is not logged in");
 
       const idToken = await user.getIdToken();
-      const response = await fetch(
-        `${apiBaseUrl}/api/students/search?find=${searchQuery}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${idToken}`, // Add Authorization header
-        },
-      }
-      );
-      if (!response.ok) {
-        throw new Error(`Error fetching search results: ${response.status}`);
-      }
-      const data = await response.json();
 
-      setStudents(data); // อัปเดต st
+      const response = await fetch(
+        `${apiBaseUrl}/api/students/search?filter=${selectedFilter}&page=${currentPage}&find=${searchQuery}`,
+        {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${idToken}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          // ถ้า API ตอบกลับด้วย 404
+          setStudents([]); // กำหนด students เป็น array ว่าง
+          setError("No results found."); // ตั้งค่า error เป็นข้อความ "No results found"
+        } else {
+          throw new Error(`Error fetching search results: ${response.status}`);
+        }
+      } else {
+        const data = await response.json();
+        console.log("Search Results:", data);
+        setStudents(data.students); // อัปเดตข้อมูลนักเรียน
+        setTotalCount(data.total_count); // จำนวนข้อมูล
+        setError(null); // ล้างข้อผิดพลาดเมื่อได้รับข้อมูลสำเร็จ
+      }
     } catch (err) {
       setError(err.message); // แสดงข้อผิดพลาด
     } finally {
@@ -275,7 +271,7 @@ export default function StudentSidebar({ isOpen, onClose }) {
   return (
     <aside
       id="additional-sidebar"
-      className="fixed z-50 overflow-x-auto w-full sm:w-[1200px] h-[500px] sm:h-screen bg-gray-100 border-t sm:border-t-0 sm:border-r border-gray-300 
+      className="fixed z-50 overflow-x-auto w-full sm:w-[1250px] h-[500px] sm:h-screen bg-gray-100 border-t sm:border-t-0 sm:border-r border-gray-300 
              bottom-0 sm:top-0 lg:left-64 lg:top-0 transition-transform"
     >
       <div className="h-full px-3 pb-4 flex flex-col">
@@ -288,6 +284,7 @@ export default function StudentSidebar({ isOpen, onClose }) {
               <div className="bg-white flex items-center border border-gray-300 rounded-md max-w-sm">
                 <div className="relative flex">
                   <span className="inset-y-0 start-0 grid w-12 place-content-center">
+                    {/* icon Search */}
                     <button type="button">
                       <span className="sr-only">Search</span>
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6">
@@ -310,7 +307,8 @@ export default function StudentSidebar({ isOpen, onClose }) {
                   <button
                     type="button"
                     className="p-2 text-gray-500 "
-                    onClick={() => setIsOpenDropdown(!isOpenDropdown)} // Toggle dropdown visibility
+                    onClick={() => setIsOpenDropdown(!isOpenDropdown)
+                    } // Toggle dropdown visibility
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
@@ -320,20 +318,20 @@ export default function StudentSidebar({ isOpen, onClose }) {
                   {/* Dropdown Menu */}
                   {isOpenDropdown && (
                     <div
-                      className="absolute z-10 right-0 mt-12 rounded-md bg-white shadow-lg focus:outline-none"
+                      className="absolute z-10 right-0 mt-10 rounded-md bg-white shadow-lg focus:outline-none"
                       role="menu"
                       aria-orientation="vertical"
                       aria-labelledby="menu-button"
                     >
                       <div className="py-1" role="none">
-                        {options.map((option) => (
+                        {filters.map((filter) => (
                           <button
-                            key={option}
-                            onClick={() => handleOptionClick(option)}  // Update the selected option
-                            className={`block w-full px-4 py-2 text-left text-sm ${selectedOption === option ? "bg-gray-200" : "hover:bg-gray-100"
+                            key={filter}
+                            onClick={() => handleOptionClick(filter)}
+                            className={`block w-full px-4 py-2 text-left text-sm ${selectedFilter === filter ? "bg-gray-200" : "hover:bg-gray-100"
                               }`}
                           >
-                            {option}
+                            {filter.replace("_"," ")}
                           </button>
                         ))}
                       </div>
@@ -411,15 +409,16 @@ export default function StudentSidebar({ isOpen, onClose }) {
                   <td colSpan="9" className="text-center py-4">No results found</td>
                 </tr>
               ) : (
-                students.map((student) => (
-                  <tr key={student.id}>
+                students.map((student, index) => (
+                  <tr key={index}>
                     <td className="w-4 p-4">
                       <div className="flex items-center">
                         <input
                           type="checkbox"
                           id="SelectAll"
                           className="size-5 mt-1.5 rounded border-gray-300"
-                          checked={selectedRows.includes(student.id)} onChange={() => handleRowSelect(student.id)} />
+                          checked={selectedRows.includes(student.id)}
+                          onChange={() => handleRowSelect(student.id)} />
                         <label htmlFor="checkbox-all-search" className="sr-only">checkbox</label>
                       </div>
                     </td>
@@ -453,92 +452,94 @@ export default function StudentSidebar({ isOpen, onClose }) {
           </table>
 
           {/* button page change */}
-          <ol className="flex items-center flex-column flex-wrap md:flex-row justify-between pt-4 p-5">
-            <div className="flex flex-1 justify-between sm:hidden">
-              <button
-                onClick={(e) => {
-                  e.preventDefault(); // Prevent default anchor behavior
-                  if (currentPage > 1) setCurrentPage(currentPage - 1);
-                }}
-                className={`relative inline-flex items-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium ${currentPage > 1 ? 'bg-white text-gray-700 hover:bg-gray-50' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                  }`}
-              >
-                Previous
-              </button>
-              <button
-                onClick={(e) => {
-                  e.preventDefault(); // Prevent default anchor behavior
-                  handleNextPage();
-                }}
-                className={`relative ml-3 inline-flex items-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium ${currentPage < Math.ceil(totalCount / perPage)
-                  ? 'bg-white text-gray-700 hover:bg-gray-50'
-                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                  }`}
-              >
-                Next
-              </button>
-            </div>
-            <div className="hidden sm:flex sm:items-center sm:justify-between">
-              <div>
-                <p className={`${St.text_showing}`}>
-                  Showing
-                  <span className="px-2">{currentPage}</span>
-                  to
-                  <span className="px-2">{totalPages}</span>
-                </p>
+          {students.length > 0 && totalPages >= 1 && (
+            <ol className="flex items-center flex-column flex-wrap md:flex-row justify-between pt-4 p-5">
+              <div className="flex flex-1 justify-between sm:hidden">
+                <button
+                  onClick={(e) => {
+                    e.preventDefault(); // Prevent default anchor behavior
+                    if (currentPage > 1) setCurrentPage(currentPage - 1);
+                  }}
+                  className={`relative inline-flex items-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium ${currentPage > 1 ? 'bg-white text-gray-700 hover:bg-gray-50' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    }`}
+                >
+                  Previous
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault(); // Prevent default anchor behavior
+                    handleNextPage();
+                  }}
+                  className={`relative ml-3 inline-flex items-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium ${currentPage < Math.ceil(totalCount / perPage)
+                    ? 'bg-white text-gray-700 hover:bg-gray-50'
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    }`}
+                >
+                  Next
+                </button>
               </div>
-            </div>
-            {/* ปุ่ม Prev */}
-            <div className="hidden sm:flex sm:items-center sm:justify-between">
-              <li>
-                <button
-                  onClick={handlePrev}
-                  className={`block size-8 rounded border border-gray-100 bg-white text-gray-900 ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  disabled={currentPage === 1}
-                >
-                  <span className="sr-only">Prev Page</span>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="size-7"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
+              <div className="hidden sm:flex sm:items-center sm:justify-between">
+                <div>
+                  <p className={`${St.text_showing}`}>
+                    Showing
+                    <span className="px-2">{currentPage}</span>
+                    to
+                    <span className="px-2">{totalPages}</span>
+                  </p>
+                </div>
+              </div>
+              {/* ปุ่ม Prev */}
+              <div className="hidden sm:flex sm:items-center sm:justify-between">
+                <li>
+                  <button
+                    onClick={handlePrev}
+                    className={`block size-8 rounded border border-gray-100 bg-white text-gray-900 ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    disabled={currentPage === 1}
                   >
-                    <path
-                      fillRule="evenodd"
-                      d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </button>
-              </li>
+                    <span className="sr-only">Prev Page</span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="size-7"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </button>
+                </li>
 
-              {/* ปุ่มตัวเลข */}
-              {pageButtons}
+                {/* ปุ่มตัวเลข */}
+                {pageButtons}
 
-              {/* ปุ่ม Next */}
-              <li>
-                <button
-                  onClick={handleNextPage}
-                  className={`block size-8 rounded border border-gray-100 bg-white text-gray-900 ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  disabled={currentPage === totalPages}
-                >
-                  <span className="sr-only">Next Page</span>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="size-7"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
+                {/* ปุ่ม Next */}
+                <li>
+                  <button
+                    onClick={handleNextPage}
+                    className={`block size-8 rounded border border-gray-100 bg-white text-gray-900 ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    disabled={currentPage === totalPages}
                   >
-                    <path
-                      fillRule="evenodd"
-                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </button>
-              </li>
-            </div>
-          </ol>
+                    <span className="sr-only">Next Page</span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="size-7"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </button>
+                </li>
+              </div>
+            </ol>
+          )}
         </div>
       </div>
       <AddStudent isOpenAddStudent={openAddStudent} onCloseAddStudent={closeAddStudentModal}></AddStudent>

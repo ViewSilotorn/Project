@@ -46,6 +46,29 @@ export default function HomeToSchoolSidebar({ isOpen, onClose }) {
     //     setDownloadData(!downloadData);
     // }
 
+    const [searchQuery, setSearchQuery] = useState(""); // State for search input
+    const [loading, setLoading] = useState(false); // Loading state for search
+    const [isOpenDropdown, setIsOpenDropdown] = useState(false);
+    const [selectedOption, setSelectedOption] = useState('All');
+
+    //filter
+    const options = [
+        "All",
+        "By First name",
+        "By Last name",
+        "By Age",
+        "By Home address",
+        "By Latitude",
+        "By Longitude",
+        "By Status",
+    ];
+
+    const handleOptionClick = (option) => {
+        setSelectedOption(option);
+        // console.log('Selected option:', option);
+        setIsOpenDropdown(false);
+    };
+
     return (
         <aside
             id="additional-sidebar"
@@ -54,32 +77,32 @@ export default function HomeToSchoolSidebar({ isOpen, onClose }) {
         >
             <div className="h-full overflow-y-auto flex flex-col">
                 {/* <h2 className="text-lg font-bold">Home To Schools</h2> */}
-                <div >
-                    {currentPageHome === 'Home To Schools' && (
-                        <div>
-                            <div className="relative px-3 flex flex-col bg-gray-100">
-                                <div className='sticky top-0 z-10 bg-gray-100'>
-                                    <div className="flex flex-col items-start space-y-1 mt-2">
-                                        <span className={styles.text_date}>Tuesday, January 2025</span>
-                                        <div className="flex items-center gap-5 sm:gap-10">
-                                            <form className="max-w-sm mx-auto mt-3">
-                                                <label htmlFor="number-input" className={`${styles.number} block`}>Number of Bus:</label>
-                                                <input type="number" id="number-input" min="0" className={`${styles.number_input} mt-2 `} required />
-                                            </form>
-                                            <form className="max-w-sm mx-auto mt-3">
-                                                <label htmlFor="number-input" className={`${styles.max} block`}>Max capacity:</label>
-                                                <input type="number" id="number-input" min="0" className={`${styles.max_input} mt-2 `} required />
-                                            </form>
-                                            <form className="max-w-sm mx-auto mt-3">
-                                                <label htmlFor="number-input" className={`${styles.time} block`}>Time:</label>
-                                                <input type="number" id="number-input" min="0" className={`${styles.time_input} mt-2 `} required />
-                                            </form>
-                                        </div>
+
+                {currentPageHome === 'Home To Schools' && (
+                    <div className="h-full overflow-y-auto flex flex-col">
+                        <div className="relative px-3 flex flex-col bg-gray-100">
+                            <div className='sticky top-0 z-10 bg-gray-100'>
+                                <div className="flex flex-col items-start space-y-1 mt-2">
+                                    <span className={styles.text_date}>Tuesday, January 2025</span>
+                                    <div className="flex items-center gap-5 sm:gap-10">
+                                        <form className="max-w-sm mx-auto mt-3">
+                                            <label htmlFor="number-input" className={`${styles.number} block`}>Number of Bus:</label>
+                                            <input type="number" id="number-input" min="0" className={`${styles.number_input} mt-2 `} required />
+                                        </form>
+                                        <form className="max-w-sm mx-auto mt-3">
+                                            <label htmlFor="number-input" className={`${styles.max} block`}>Max capacity:</label>
+                                            <input type="number" id="number-input" min="0" className={`${styles.max_input} mt-2 `} required />
+                                        </form>
+                                        <form className="max-w-sm mx-auto mt-3">
+                                            <label htmlFor="number-input" className={`${styles.time} block`}>Time:</label>
+                                            <input type="number" id="number-input" min="0" className={`${styles.time_input} mt-2 `} required />
+                                        </form>
                                     </div>
-                                    <div className="mt-5">
-                                        <span className={styles.text_student}>Students</span>
-                                    </div>
-                                    {/* <div className="flex mt-2 mb-3 items-center gap-2">
+                                </div>
+                                <div className="mt-5">
+                                    <span className={styles.text_student}>Students</span>
+                                </div>
+                                {/* <div className="flex mt-2 mb-3 items-center gap-2">
                                     <div className="relative">
                                         <label htmlFor="Search" className="sr-only"> Search </label>
                                         <input
@@ -98,161 +121,161 @@ export default function HomeToSchoolSidebar({ isOpen, onClose }) {
                                         </span>
                                     </div>
                                 </div> */}
-                                    <div className="relative mt-2 mb-2">
-                                        <label htmlFor="Search" className="sr-only"> Search </label>
-                                        <input
-                                            type="text"
-                                            id="Search"
-                                            placeholder="Name Student" className={`${styles.input_search} bg-white  py-2 px-10 border border-gray-400 rounded shadow`} />
-                                        <span className="absolute inset-y-0 start-0 grid w-12 place-content-center">
-                                            <button type="button">
-                                                <span className="sr-only">Search</span>
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#00000029" className="size-6 b">
-                                                    <path fillRule="evenodd" d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z" clipRule="evenodd" />
-                                                </svg>
-                                            </button>
-                                        </span>
-                                    </div>
-                                </div>
-
-                                {students.map((student) => (
-                                    <div key={student.id} className={`${styles.card} flex w-full my-1 p-4 max-w-lg flex-col rounded-lg bg-white shadow-sm border border-slate-200`}>
-                                        <div className="flex items-center gap-4">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="#265CB3" className="size-10">
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                                <div className="relative mt-2 mb-2">
+                                    <label htmlFor="Search" className="sr-only"> Search </label>
+                                    <input
+                                        type="text"
+                                        id="Search"
+                                        placeholder="Name Student" className={`${styles.input_search} bg-white  py-2 px-10 border border-gray-400 rounded shadow`} />
+                                    <span className="absolute inset-y-0 start-0 grid w-12 place-content-center">
+                                        <button type="button">
+                                            <span className="sr-only">Search</span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#00000029" className="size-6 b">
+                                                <path fillRule="evenodd" d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z" clipRule="evenodd" />
                                             </svg>
+                                        </button>
+                                    </span>
+                                </div>
+                               
+                            </div>
 
-                                            <div className="flex w-full flex-col">
-                                                <div className="flex items-center justify-between">
-                                                    <h5 className={styles.text_name}>
-                                                        {student.first_name}   {student.last_name}
-                                                    </h5>
-                                                </div>
-                                                <p className={styles.text_adress}>
-                                                    {student.address}
-                                                </p>
+                            {students.map((student) => (
+                                <div key={student.id} className={`${styles.card} flex w-full my-1 p-4 max-w-lg flex-col rounded-lg bg-white shadow-sm border border-slate-200`}>
+                                    <div className="flex items-center gap-4">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="#265CB3" className="size-10">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                                        </svg>
+
+                                        <div className="flex w-full flex-col">
+                                            <div className="flex items-center justify-between">
+                                                <h5 className={styles.text_name}>
+                                                    {student.first_name}   {student.last_name}
+                                                </h5>
                                             </div>
-                                            <button
-                                                type="button"
-                                                className={`${student.status === 1
-                                                    ? styles.btn_status
-                                                    : styles.btn_status_cancel
-                                                    } rounded-lg p-3 py-2 my-2 mb-2`}
-                                            >
-                                                {student.status === 1 ? 'Confirmed' : 'Canceled'}
-                                            </button>
-                                            {/* <button type="button"
+                                            <p className={styles.text_adress}>
+                                                {student.address}
+                                            </p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            className={`${student.status === 1
+                                                ? styles.btn_status
+                                                : styles.btn_status_cancel
+                                                } rounded-lg p-3 py-2 my-2 mb-2`}
+                                        >
+                                            {student.status === 1 ? 'Confirmed' : 'Canceled'}
+                                        </button>
+                                        {/* <button type="button"
                                                 className={`${styles.btn_status} rounded-lg p-3 py-2 my-2  mb-2 `}>
                                                 Confirmed
                                             </button><button type="button"
                                                 className={`${styles.btn_status_cancel} rounded-lg p-3 py-2 my-2  mb-2 `}>
                                                 Canceled
                                             </button> */}
-                                            {/* <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-10">
+                                        {/* <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-10">
                                                 <path fillRule="evenodd" d="M16.28 11.47a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 0 1-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 0 1 1.06-1.06l7.5 7.5Z" clipRule="evenodd" />
                                             </svg> */}
-                                        </div>
                                     </div>
-                                ))}
-
-                                <div className="sticky bottom-20 mt-2 bg-gray-100 flex flex-1 justify-between py-2">
-                                    <button
-                                        onClick={(e) => {
-                                            e.preventDefault(); // Prevent default anchor behavior
-                                            if (currentPage > 1) setCurrentPage(currentPage - 1);
-                                        }}
-                                        className={`relative inline-flex items-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium ${currentPage > 1 ? 'bg-white text-gray-700 hover:bg-gray-50' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                                            }`}
-                                    >
-                                        Previous
-                                    </button>
-                                    <span className="text-sm text-gray-700 py-2">
-                                        Page {currentPage} of {totalPages}
-                                    </span>
-                                    <button
-                                        onClick={(e) => {
-                                            e.preventDefault(); // Prevent default anchor behavior
-                                            handleNextPage();
-                                        }}
-                                        className={`relative ml-3 inline-flex items-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium ${currentPage < Math.ceil(totalCount / perPage)
-                                            ? 'bg-white text-gray-700 hover:bg-gray-50'
-                                            : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                                            }`}
-                                    >
-                                        Next
-                                    </button>
                                 </div>
+                            ))}
 
+                            <div className="mt-auto flex justify-between py-2 p-3">
+                                <button
+                                    onClick={(e) => {
+                                        e.preventDefault(); // Prevent default anchor behavior
+                                        if (currentPage > 1) setCurrentPage(currentPage - 1);
+                                    }}
+                                    className={`relative inline-flex items-center rounded-md border border-gray-300 px-4 py-2 ${currentPage > 1 ? 'bg-white  hover:bg-gray-50' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                        }`}
+                                >
+                                    Previous
+                                </button>
+                                <span className="py-2">
+                                    Page {currentPage} of {totalPages}
+                                </span>
+                                <button
+                                    onClick={(e) => {
+                                        e.preventDefault(); // Prevent default anchor behavior
+                                        handleNextPage();
+                                    }}
+                                    className={`relative ml-3 inline-flex items-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium ${currentPage < Math.ceil(totalCount / perPage)
+                                        ? 'bg-white text-gray-700 hover:bg-gray-50'
+                                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                        }`}
+                                >
+                                    Next
+                                </button>
                             </div>
+                        </div>
 
-                            {/* <div className="bg-white p-5 sticky bottom-0 left-0 right-0 flex justify-center ">
+                        <div className="mt-auto sticky bottom-0 flex justify-center bg-[#f9f9f9] border-t border-gray-300 w-full">
+
+                            <div className="bg-white w-screen py-3">
+                                <button
+                                    className={`${styles.btn_route} mx-auto block bg-blue-500 hover:bg-blue-600 rounded px-4 py-2`}
+                                    onClick={() => setCurrentPageHome('Routes')}
+                                >
+                                    Optimize Routes
+                                </button>
+                            </div>
+                        </div>
+                        {/* <div className="bg-white p-5 sticky bottom-0 left-0 right-0 flex justify-center ">
                                 <button className={`${styles.btn} w-full justify-center`} onClick={() => setCurrentPageHome('Routes')}>
                                     Optimize Route
                                 </button>
                             </div> */}
-                            <div className="mt-auto sticky bottom-0 flex justify-center bg-[#f9f9f9] border-t border-gray-300 w-full">
-                                <div className="bg-white w-screen py-3">
-                                    <button
-                                        className={`${styles.btn_route} mx-auto block bg-blue-500 hover:bg-blue-600 rounded px-4 py-2`}
-                                        onClick={() => setCurrentPageHome('Routes')}
-                                    >
-                                        Optimize Routes
-                                    </button>
-                                </div>
-                            </div>
+
+                    </div>
+                )}
+
+                {currentPageHome === 'Routes' && (
+                    <div className="h-full overflow-y-auto flex flex-col">
+                        <div className="flex items-center p-2">
+                            <svg onClick={() => setCurrentPageHome('Home To Schools')} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-10">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                            </svg>
+
+                            <h1 className={`${styles.title} `}>Routes</h1>
                         </div>
-                    )}
-                </div>
-
-                <div className="h-full overflow-y-auto flex flex-col">
-                    {currentPageHome === 'Routes' && (
-                        <div>
-                            <div className="flex items-center p-2">
-                                <svg onClick={() => setCurrentPageHome('Home To Schools')} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-10">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-                                </svg>
-
-                                <h1 className={`${styles.title} `}>Routes</h1>
-                            </div>
-                            <hr></hr>
-                            <div className='px-3'>
-                                <div className={`${styles.card1} flex w-full p-4 max-w-lg flex-col rounded-lg bg-white shadow-sm border border-slate-200 my-6 hover:bg-gray-100`} onClick={() => setCurrentPageHome('RoutesNumber')}>
-                                    <div className="flex items-center gap-4 py-2">
-                                        <div className="flex w-full flex-col">
-                                            <div className="flex items-center">
-                                                <div className={`w-10 h-10 bg-orange-300 rounded`}></div>
-                                                <h5 className={`${styles.text_card} px-5`}>
-                                                    Routes1
-                                                </h5>
-                                            </div>
+                        <hr></hr>
+                        <div className='px-3'>
+                            <div className={`${styles.card1} flex w-full p-4 max-w-lg flex-col rounded-lg bg-white shadow-sm border border-slate-200 my-6 hover:bg-gray-100`} onClick={() => setCurrentPageHome('RoutesNumber')}>
+                                <div className="flex items-center gap-4 py-2">
+                                    <div className="flex w-full flex-col">
+                                        <div className="flex items-center">
+                                            <div className={`w-10 h-10 bg-orange-300 rounded`}></div>
+                                            <h5 className={`${styles.text_card} px-5`}>
+                                                Routes1
+                                            </h5>
                                         </div>
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-10">
-                                            <path fillRule="evenodd" d="M16.28 11.47a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 0 1-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 0 1 1.06-1.06l7.5 7.5Z" clipRule="evenodd" />
-                                        </svg>
                                     </div>
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-10">
+                                        <path fillRule="evenodd" d="M16.28 11.47a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 0 1-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 0 1 1.06-1.06l7.5 7.5Z" clipRule="evenodd" />
+                                    </svg>
                                 </div>
                             </div>
-
                         </div>
-                    )}
-                    <div className="mt-auto sticky bottom-0 flex justify-center bg-[#f9f9f9] border-t border-gray-300 w-ful">
-                        <div className="flex bg-white w-screen py-3">
-                            <button
-                                className={`${styles.btn_reset} mx-auto rounded px-4 py-2`}
-                            >
-                                Reset
-                            </button>
-                            <button
-                                // onClick={toggleDownload}
-                                className={`${styles.btn_download} mx-auto block bg-blue-500 rounded px-4 py-2`}
-                            >
-                                save
-                            </button>
+                        <div className="mt-auto sticky bottom-0 flex justify-center bg-[#f9f9f9] border-t border-gray-300 w-full">
+                            <div className="flex bg-white w-screen py-3">
+                                <button
+                                    className={`${styles.btn_reset} mx-auto rounded px-4 py-2`}
+                                >
+                                    Reset
+                                </button>
+                                <button
+                                    // onClick={toggleDownload}
+                                    className={`${styles.btn_download} mx-auto block bg-blue-500 rounded px-4 py-2`}
+                                >
+                                    save
+                                </button>
+                            </div>
                         </div>
                     </div>
+                )}
 
-                </div>
+
+
 
                 {currentPageHome === 'RoutesNumber' && (
                     <div>

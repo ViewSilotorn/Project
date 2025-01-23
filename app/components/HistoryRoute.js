@@ -1,124 +1,127 @@
 "use client";
 import styles from '../css/route.module.css';
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { fetchTrips } from '../services/tripService';
 
 export default function HistoryRouteSidebar({ isOpen, onClose }) {
   if (!isOpen) return null; // ถ้า Sidebar ไม่เปิด ให้คืนค่า null
 
   const [currentPage, setCurrentPage] = useState('History Routes');
+
+  const [routes, setRoutes] = useState([]);
   // Data for the history routes
-  const routes = [
-    {
-      date: "Jan 13, 2025",
-      students: 140,
-      type: "Home To Schools",
-      typeColor: "text-green-600",
-    },
-    {
-      date: "Jan 9, 2025",
-      students: 139,
-      type: "Bus To Schools",
-      typeColor: "text-red-600",
-    },
-    {
-      date: "Jan 1, 2025",
-      students: 120,
-      type: "Home To Schools",
-      typeColor: "text-yellow-600",
-    },
-    {
-      date: "Jan 13, 2025",
-      students: 140,
-      type: "Home To Schools",
-      typeColor: "text-green-600",
-    },
-    {
-      date: "Jan 9, 2025",
-      students: 139,
-      type: "Bus To Schools",
-      typeColor: "text-red-600",
-    },
-    {
-      date: "Jan 1, 2025",
-      students: 120,
-      type: "Home To Schools",
-      typeColor: "text-yellow-600",
-    },
-    // Add more items here for testing scroll
-    {
-      date: "Feb 5, 2025",
-      students: 150,
-      type: "Home To Schools",
-      typeColor: "text-green-600",
-    },
-    {
-      date: "Feb 6, 2025",
-      students: 130,
-      type: "Bus To Schools",
-      typeColor: "text-red-600",
-    },
-    {
-      date: "Feb 7, 2025",
-      students: 125,
-      type: "Home To Schools",
-      typeColor: "text-yellow-600",
-    },
-    {
-      date: "Jan 13, 2025",
-      students: 140,
-      type: "Home To Schools",
-      typeColor: "text-green-600",
-    },
-    {
-      date: "Jan 9, 2025",
-      students: 139,
-      type: "Bus To Schools",
-      typeColor: "text-red-600",
-    },
-    {
-      date: "Jan 1, 2025",
-      students: 120,
-      type: "Home To Schools",
-      typeColor: "text-yellow-600",
-    },
-    {
-      date: "Jan 13, 2025",
-      students: 140,
-      type: "Home To Schools",
-      typeColor: "text-green-600",
-    },
-    {
-      date: "Jan 9, 2025",
-      students: 139,
-      type: "Bus To Schools",
-      typeColor: "text-red-600",
-    },
-    {
-      date: "Jan 1, 2025",
-      students: 120,
-      type: "Home To Schools",
-      typeColor: "text-yellow-600",
-    },
-    // Add more items here for testing scroll
-    {
-      date: "Feb 5, 2025",
-      students: 150,
-      type: "Home To Schools",
-      typeColor: "text-green-600",
-    },
-    {
-      date: "Feb 6, 2025",
-      students: 130,
-      type: "Bus To Schools",
-      typeColor: "text-red-600",
-    },
-    {
-      date: "Feb 7, 2025",
-      students: 125,
-      type: "Home To Schools",
-      typeColor: "text-yellow-600",
-    },
-  ];
+  // const routes = [
+  //   {
+  //     date: "Jan 13, 2025",
+  //     students: 140,
+  //     type: "Home To Schools",
+  //     typeColor: "text-green-600",
+  //   },
+  //   {
+  //     date: "Jan 9, 2025",
+  //     students: 139,
+  //     type: "Bus To Schools",
+  //     typeColor: "text-red-600",
+  //   },
+  //   {
+  //     date: "Jan 1, 2025",
+  //     students: 120,
+  //     type: "Home To Schools",
+  //     typeColor: "text-yellow-600",
+  //   },
+  //   {
+  //     date: "Jan 13, 2025",
+  //     students: 140,
+  //     type: "Home To Schools",
+  //     typeColor: "text-green-600",
+  //   },
+  //   {
+  //     date: "Jan 9, 2025",
+  //     students: 139,
+  //     type: "Bus To Schools",
+  //     typeColor: "text-red-600",
+  //   },
+  //   {
+  //     date: "Jan 1, 2025",
+  //     students: 120,
+  //     type: "Home To Schools",
+  //     typeColor: "text-yellow-600",
+  //   },
+  //   // Add more items here for testing scroll
+  //   {
+  //     date: "Feb 5, 2025",
+  //     students: 150,
+  //     type: "Home To Schools",
+  //     typeColor: "text-green-600",
+  //   },
+  //   {
+  //     date: "Feb 6, 2025",
+  //     students: 130,
+  //     type: "Bus To Schools",
+  //     typeColor: "text-red-600",
+  //   },
+  //   {
+  //     date: "Feb 7, 2025",
+  //     students: 125,
+  //     type: "Home To Schools",
+  //     typeColor: "text-yellow-600",
+  //   },
+  //   {
+  //     date: "Jan 13, 2025",
+  //     students: 140,
+  //     type: "Home To Schools",
+  //     typeColor: "text-green-600",
+  //   },
+  //   {
+  //     date: "Jan 9, 2025",
+  //     students: 139,
+  //     type: "Bus To Schools",
+  //     typeColor: "text-red-600",
+  //   },
+  //   {
+  //     date: "Jan 1, 2025",
+  //     students: 120,
+  //     type: "Home To Schools",
+  //     typeColor: "text-yellow-600",
+  //   },
+  //   {
+  //     date: "Jan 13, 2025",
+  //     students: 140,
+  //     type: "Home To Schools",
+  //     typeColor: "text-green-600",
+  //   },
+  //   {
+  //     date: "Jan 9, 2025",
+  //     students: 139,
+  //     type: "Bus To Schools",
+  //     typeColor: "text-red-600",
+  //   },
+  //   {
+  //     date: "Jan 1, 2025",
+  //     students: 120,
+  //     type: "Home To Schools",
+  //     typeColor: "text-yellow-600",
+  //   },
+  //   // Add more items here for testing scroll
+  //   {
+  //     date: "Feb 5, 2025",
+  //     students: 150,
+  //     type: "Home To Schools",
+  //     typeColor: "text-green-600",
+  //   },
+  //   {
+  //     date: "Feb 6, 2025",
+  //     students: 130,
+  //     type: "Bus To Schools",
+  //     typeColor: "text-red-600",
+  //   },
+  //   {
+  //     date: "Feb 7, 2025",
+  //     students: 125,
+  //     type: "Home To Schools",
+  //     typeColor: "text-yellow-600",
+  //   },
+  // ];
 
   const Data = [
     { id: 1, name: "John Doe", address: "123 Main St, Springfield" },
@@ -132,6 +135,22 @@ export default function HistoryRouteSidebar({ isOpen, onClose }) {
     { id: 9, name: "Grace Blue", address: "333 Walnut St, Meadowlake" },
     { id: 10, name: "Henry Yellow", address: "444 Poplar Ave, Sunnyvale" },
   ]
+
+  useEffect(() => {
+    //functionดึงข้อมูลจากAPI
+    const fetchData = async () => {
+      try {
+        const data = await fetchTrips();
+        console.log('Loaded Trips:', data); // ตรวจสอบข้อมูล
+        setRoutes(data); // ตั้งค่า state
+      } catch (error) {
+        console.error('Error:', error.message);
+        setError(error.message);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   return (
     <aside
@@ -177,7 +196,7 @@ export default function HistoryRouteSidebar({ isOpen, onClose }) {
               <div className="">
                 <div className="flex items-center justify-between">
                   <h3 className={styles.date}>
-                    {route.date}
+                    {route.dataTime}
                   </h3>
                   <p className={`${styles.student} mt-1 max-w-2xl`}>
                     Students: {route.students}

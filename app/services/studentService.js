@@ -1,4 +1,5 @@
 import { getAuth } from "firebase/auth";
+
 const host = process.env.NEXT_PUBLIC_API_HOST;
 const port = process.env.NEXT_PUBLIC_API_PORT;
 
@@ -109,8 +110,9 @@ export const deleteStudents = async (id) => {
             const errorData = await response.json();
             throw new Error(errorData.message || "Failed to delete students");
         }
-
+        
         return await response.json();
+    
     } catch (error) {
         console.error("Error in deleteStudents service:", error);
         throw error;
