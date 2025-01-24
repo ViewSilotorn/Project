@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import Form from 'next/form'
-import Modal from "../../components/Modal";
+import Modal from "../../modals/Modal";
 import { getAuth, sendPasswordResetEmail } from "firebase/auth";
 import app from "../../../config";
 

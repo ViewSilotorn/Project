@@ -4,17 +4,32 @@ import { getAuth } from "firebase/auth";
 import { useState, useEffect, useRef } from "react";
 import { fetchStudents } from '../services/studentService';
 import Link from 'next/link';
+import { subscribeAuthState } from "../services/authService";
+import FindingOverlay from '../modals/FindingOverlay'
+import St from '../css/student.module.css';
 
-export default function HomeToSchoolSidebar({ isOpen, onClose }) {
+export default function HomeToSchoolSidebar({ isOpen, openComponent, onClose, mapRef }) {
     if (!isOpen) return null; // ถ้า Sidebar ไม่เปิด ให้คืนค่า null
 
     const [currentPageHome, setCurrentPageHome] = useState('Home To Schools');
     const [students, setStudents] = useState([]);
     const [error, setError] = useState(null);
+    const [isLoading, setIsLoading] = useState();
     const [currentPage, setCurrentPage] = useState(1);
     const [totalCount, setTotalCount] = useState(0);
     const [perPage, setPerPage] = useState(5);
+    const [numVehicles, setNumVehicles] = useState(2);
+    const [maxStopsPerVehicle, setMaxStopsPerVehicle] = useState(24);
+    const [maxTravelTime, setMaxTravelTime] = useState(180);
+
     // const [downloadData, setDownloadData] = useState(false);
+    const [user, setUser] = useState(null);
+    const [idToken, setIdToken] = useState(""); // State สำหรับเก็บ token
+
+    useEffect(() => {
+        const unsubscribe = subscribeAuthState(setUser, setIdToken); // เรียกใช้ service
+        return () => unsubscribe(); // เมื่อ component ถูกลบออก, ยกเลิกการ subscribe
+    }, []); // ใช้ [] เพื่อให้เพียงแค่ครั้งแรกที่ mount
 
     //Show student
     useEffect(() => {
@@ -46,28 +61,28 @@ export default function HomeToSchoolSidebar({ isOpen, onClose }) {
     //     setDownloadData(!downloadData);
     // }
 
-    const [searchQuery, setSearchQuery] = useState(""); // State for search input
-    const [loading, setLoading] = useState(false); // Loading state for search
-    const [isOpenDropdown, setIsOpenDropdown] = useState(false);
-    const [selectedOption, setSelectedOption] = useState('All');
+    const findingRoute = async () => {
+        try {
+            setIsLoading(true); // เริ่มโหลด
 
-    //filter
-    const options = [
-        "All",
-        "By First name",
-        "By Last name",
-        "By Age",
-        "By Home address",
-        "By Latitude",
-        "By Longitude",
-        "By Status",
-    ];
+            if (mapRef.current) {
+                const { routes, routeColors, routeDistance, routeDuration, Didu } = await mapRef.current.handleSubmit(
+                    parseInt(numVehicles),
+                    parseInt(maxStopsPerVehicle),
+                    parseInt(maxTravelTime),
+                    true
+                );
+                // openComponent("Route");
+                openComponent("Route", { routes, routeColors, routeDistance, routeDuration, Didu });
+            }
 
-    const handleOptionClick = (option) => {
-        setSelectedOption(option);
-        // console.log('Selected option:', option);
-        setIsOpenDropdown(false);
+        } catch (error) {
+            console.error("Error in findingRoute:", error);
+        } finally {
+            setIsLoading(false); // สิ้นสุดโหลด
+        }
     };
+
 
     return (
         <aside
@@ -77,32 +92,156 @@ export default function HomeToSchoolSidebar({ isOpen, onClose }) {
         >
             <div className="h-full overflow-y-auto flex flex-col">
                 {/* <h2 className="text-lg font-bold">Home To Schools</h2> */}
+                {/* <div className="flex items-center justify-between mt-2 mb-2">
+                    <h2 className="text-lg font-bold">Home To Schools</h2> */}
+                {/* <button
+                        onClick={onClose}
+                        className="justify-items-center w-[30px] h-[30px] bg-red-500 text-black  rounded hover:bg-red-800"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth="1.5"
+                            stroke="currentColor"
+                            className="size-5"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M6 18 18 6M6 6l12 12"
+                            />
+                        </svg>
+                    </button>
 
-                {currentPageHome === 'Home To Schools' && (
-                    <div className="h-full overflow-y-auto flex flex-col">
-                        <div className="relative px-3 flex flex-col bg-gray-100">
-                            <div className='sticky top-0 z-10 bg-gray-100'>
-                                <div className="flex flex-col items-start space-y-1 mt-2">
-                                    <span className={styles.text_date}>Tuesday, January 2025</span>
-                                    <div className="flex items-center gap-5 sm:gap-10">
-                                        <form className="max-w-sm mx-auto mt-3">
-                                            <label htmlFor="number-input" className={`${styles.number} block`}>Number of Bus:</label>
-                                            <input type="number" id="number-input" min="0" className={`${styles.number_input} mt-2 `} required />
-                                        </form>
-                                        <form className="max-w-sm mx-auto mt-3">
-                                            <label htmlFor="number-input" className={`${styles.max} block`}>Max capacity:</label>
-                                            <input type="number" id="number-input" min="0" className={`${styles.max_input} mt-2 `} required />
-                                        </form>
-                                        <form className="max-w-sm mx-auto mt-3">
-                                            <label htmlFor="number-input" className={`${styles.time} block`}>Time:</label>
-                                            <input type="number" id="number-input" min="0" className={`${styles.time_input} mt-2 `} required />
-                                        </form>
+                    <button
+                        type="button"
+                        className="flex justify-center items-center gap-x-3 size-6 bg-white border border-gray-200 text-sm text-gray-600 hover:bg-gray-100 rounded-[7px] focus:outline-none focus:bg-gray-100 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-700 dark:focus:bg-neutral-700 dark:hover:text-neutral-200 dark:focus:text-neutral-200"
+                        onClick={onClose}
+                    >
+                        <svg
+                            className="shrink-0 size-4"
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        >
+                            <path d="M18 6 6 18" />
+                            <path d="m6 6 12 12" />
+                        </svg>
+                    </button> */}
+
+                {/* </div> */}
+                <div className="h-full overflow-y-auto flex flex-col">
+                    <div className="relative px-3 flex flex-col bg-gray-100">
+                        <div className='sticky top-0 z-10 bg-gray-100'>
+                            <div className="flex flex-col items-start space-y-1 mt-2">
+                                <span className={styles.text_date}>Tuesday, January 2025</span>
+                                <div className="flex items-center gap-5 sm:gap-10 py-5">
+                                    <div className="flex flex-col">
+                                        <label>Bus:</label>
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            required
+                                            value={numVehicles}
+                                            onChange={(e) => setNumVehicles(e.target.value)}
+                                            className={`${styles.number_input} mt-2 `}
+                                        />
                                     </div>
+
+                                    <div className="flex flex-col">
+                                        <label>Max Capacity:</label>
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            required
+                                            value={maxStopsPerVehicle}
+                                            onChange={(e) => setMaxStopsPerVehicle(e.target.value)}
+                                            className={`${styles.max_input} mt-2 `}
+                                        />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <label>Max Time (min):</label>
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            required
+                                            value={maxTravelTime}
+                                            onChange={(e) => setMaxTravelTime(e.target.value)}
+                                            className={`${styles.time_input} mt-2 `}
+                                        />
+                                    </div>
+
                                 </div>
-                                <div className="mt-5">
-                                    <span className={styles.text_student}>Students</span>
+                            </div>
+                            <div className="mb-2">
+                                <span className={styles.text_student}>Students</span>
+                            </div>
+                            <div className="bg-white flex items-center border border-gray-300 rounded-md max-w-sm mb-2">
+                                <div className="relative flex">
+                                    <span className="inset-y-0 start-0 grid w-12 place-content-center">
+                                        {/* icon Search */}
+                                        <button type="button">
+                                            <span className="sr-only">Search</span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6">
+                                                <path fillRule="evenodd" d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z" clipRule="evenodd" />
+                                            </svg>
+                                        </button>
+                                    </span>
+                                    {/* Search input */}
+                                    <form>
+                                        <input
+                                            type="text"
+                                            placeholder="Search..."
+                                            // value={searchQuery}
+                                            // onChange={handleSearchChange}
+                                            className={`${St.input_search} rounded-lg w-full`}
+                                        />
+                                    </form>
+                                    {/* onClick={() => setIsOpenDropdown(!isOpenDropdown)
+                                    } // Toggle dropdown visibility */}
+                                    {/* Filter Icon */}
+                                    <button
+                                        type="button"
+                                        className="p-2 text-gray-500 "
+
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
+                                        </svg>
+                                    </button>
+
+                                    {/* Dropdown Menu */}
+                                    {/* {isOpenDropdown && (
+                                    <div
+                                        className="absolute z-10 right-0 mt-10 rounded-md bg-white shadow-lg focus:outline-none"
+                                        role="menu"
+                                        aria-orientation="vertical"
+                                        aria-labelledby="menu-button"
+                                    >
+                                        <div className="py-1" role="none">
+                                            {filters.map((filter) => (
+                                                <button
+                                                    key={filter}
+                                                    onClick={() => handleOptionClick(filter)}
+                                                    className={`block w-full px-4 py-2 text-left text-sm ${selectedFilter === filter ? "bg-gray-200" : "hover:bg-gray-100"
+                                                        }`}
+                                                >
+                                                    {filter.replace("_", " ")}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )} */}
                                 </div>
-                                {/* <div className="flex mt-2 mb-3 items-center gap-2">
+                            </div>
+                            {/* <div className="flex mt-2 mb-3 items-center gap-2">
                                     <div className="relative">
                                         <label htmlFor="Search" className="sr-only"> Search </label>
                                         <input
@@ -121,115 +260,119 @@ export default function HomeToSchoolSidebar({ isOpen, onClose }) {
                                         </span>
                                     </div>
                                 </div> */}
-                                <div className="relative mt-2 mb-2">
-                                    <label htmlFor="Search" className="sr-only"> Search </label>
-                                    <input
-                                        type="text"
-                                        id="Search"
-                                        placeholder="Name Student" className={`${styles.input_search} bg-white  py-2 px-10 border border-gray-400 rounded shadow`} />
-                                    <span className="absolute inset-y-0 start-0 grid w-12 place-content-center">
-                                        <button type="button">
-                                            <span className="sr-only">Search</span>
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#00000029" className="size-6 b">
-                                                <path fillRule="evenodd" d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z" clipRule="evenodd" />
-                                            </svg>
-                                        </button>
-                                    </span>
-                                </div>
-                               
-                            </div>
-
-                            {students.map((student) => (
-                                <div key={student.id} className={`${styles.card} flex w-full my-1 p-4 max-w-lg flex-col rounded-lg bg-white shadow-sm border border-slate-200`}>
-                                    <div className="flex items-center gap-4">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="#265CB3" className="size-10">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                            {/* <div className="relative mt-2 mb-2">
+                                <label htmlFor="Search" className="sr-only"> Search </label>
+                                <input
+                                    type="text"
+                                    id="Search"
+                                    placeholder="Name Student" className={`${styles.input_search} bg-white  py-2 px-10 border border-gray-400 rounded shadow`} />
+                                <span className="absolute inset-y-0 start-0 grid w-12 place-content-center">
+                                    <button type="button">
+                                        <span className="sr-only">Search</span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#00000029" className="size-6 b">
+                                            <path fillRule="evenodd" d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z" clipRule="evenodd" />
                                         </svg>
+                                    </button>
+                                </span>
+                            </div> */}
 
-                                        <div className="flex w-full flex-col">
-                                            <div className="flex items-center justify-between">
-                                                <h5 className={styles.text_name}>
-                                                    {student.first_name}   {student.last_name}
-                                                </h5>
-                                            </div>
-                                            <p className={styles.text_adress}>
-                                                {student.address}
-                                            </p>
+                        </div>
+
+                        {students.map((student) => (
+                            <div key={student.id} className={`${styles.card} flex w-full my-1 p-4 max-w-lg flex-col rounded-lg bg-white shadow-sm border border-slate-200`}>
+                                <div className="flex items-center gap-4">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="#265CB3" className="size-10">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                                    </svg>
+
+                                    <div className="flex w-full flex-col">
+                                        <div className="flex items-center justify-between">
+                                            <h5 className={styles.text_name}>
+                                                {student.first_name}   {student.last_name}
+                                            </h5>
                                         </div>
-                                        <button
-                                            type="button"
-                                            className={`${student.status === 1
-                                                ? styles.btn_status
-                                                : styles.btn_status_cancel
-                                                } rounded-lg p-3 py-2 my-2 mb-2`}
-                                        >
-                                            {student.status === 1 ? 'Confirmed' : 'Canceled'}
-                                        </button>
-                                        {/* <button type="button"
+                                        <p className={styles.text_adress}>
+                                            {student.address}
+                                        </p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        className={`${student.status === 1
+                                            ? styles.btn_status
+                                            : styles.btn_status_cancel
+                                            } rounded-lg p-3 py-2 my-2 mb-2`}
+                                    >
+                                        {student.status === 1 ? 'Confirmed' : 'Canceled'}
+                                    </button>
+                                    {/* <button type="button"
                                                 className={`${styles.btn_status} rounded-lg p-3 py-2 my-2  mb-2 `}>
                                                 Confirmed
                                             </button><button type="button"
                                                 className={`${styles.btn_status_cancel} rounded-lg p-3 py-2 my-2  mb-2 `}>
                                                 Canceled
                                             </button> */}
-                                        {/* <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-10">
+                                    {/* <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-10">
                                                 <path fillRule="evenodd" d="M16.28 11.47a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 0 1-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 0 1 1.06-1.06l7.5 7.5Z" clipRule="evenodd" />
                                             </svg> */}
-                                    </div>
                                 </div>
-                            ))}
-
-                            <div className="mt-auto flex justify-between py-2 p-3">
-                                <button
-                                    onClick={(e) => {
-                                        e.preventDefault(); // Prevent default anchor behavior
-                                        if (currentPage > 1) setCurrentPage(currentPage - 1);
-                                    }}
-                                    className={`relative inline-flex items-center rounded-md border border-gray-300 px-4 py-2 ${currentPage > 1 ? 'bg-white  hover:bg-gray-50' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                                        }`}
-                                >
-                                    Previous
-                                </button>
-                                <span className="py-2">
-                                    Page {currentPage} of {totalPages}
-                                </span>
-                                <button
-                                    onClick={(e) => {
-                                        e.preventDefault(); // Prevent default anchor behavior
-                                        handleNextPage();
-                                    }}
-                                    className={`relative ml-3 inline-flex items-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium ${currentPage < Math.ceil(totalCount / perPage)
-                                        ? 'bg-white text-gray-700 hover:bg-gray-50'
-                                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                                        }`}
-                                >
-                                    Next
-                                </button>
                             </div>
-                        </div>
+                        ))}
 
-                        <div className="mt-auto sticky bottom-0 flex justify-center bg-[#f9f9f9] border-t border-gray-300 w-full">
-
-                            <div className="bg-white w-screen py-3">
-                                <button
-                                    className={`${styles.btn_route} mx-auto block bg-blue-500 hover:bg-blue-600 rounded px-4 py-2`}
-                                    onClick={() => setCurrentPageHome('Routes')}
-                                >
-                                    Optimize Routes
-                                </button>
-                            </div>
+                        <div className="mt-auto flex justify-between py-2 p-3">
+                            <button
+                                onClick={(e) => {
+                                    e.preventDefault(); // Prevent default anchor behavior
+                                    if (currentPage > 1) setCurrentPage(currentPage - 1);
+                                }}
+                                className={`relative inline-flex items-center rounded-md border border-gray-300 px-4 py-2 ${currentPage > 1 ? 'bg-white  hover:bg-gray-50' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                    }`}
+                            >
+                                Previous
+                            </button>
+                            <span className="py-2">
+                                Page {currentPage} of {totalPages}
+                            </span>
+                            <button
+                                onClick={(e) => {
+                                    e.preventDefault(); // Prevent default anchor behavior
+                                    handleNextPage();
+                                }}
+                                className={`relative ml-3 inline-flex items-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium ${currentPage < Math.ceil(totalCount / perPage)
+                                    ? 'bg-white text-gray-700 hover:bg-gray-50'
+                                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                    }`}
+                            >
+                                Next
+                            </button>
                         </div>
-                        {/* <div className="bg-white p-5 sticky bottom-0 left-0 right-0 flex justify-center ">
+                    </div>
+
+                    {isLoading && <FindingOverlay />}
+
+                    <div className="mt-auto sticky bottom-0 flex justify-center bg-[#f9f9f9] border-t border-gray-300 w-full">
+
+                        <div className="bg-white w-screen py-3">
+                            <button
+                                className={`${styles.btn_route} mx-auto block bg-blue-500 hover:bg-blue-600 rounded px-4 py-2`}
+                                onClick={() => {
+                                    findingRoute();
+                                }}
+                            >
+                                Optimize Routes
+                            </button>
+                        </div>
+                    </div>
+                    {/* <div className="bg-white p-5 sticky bottom-0 left-0 right-0 flex justify-center ">
                                 <button className={`${styles.btn} w-full justify-center`} onClick={() => setCurrentPageHome('Routes')}>
                                     Optimize Route
                                 </button>
                             </div> */}
 
-                    </div>
-                )}
+                </div>
 
-                {currentPageHome === 'Routes' && (
+
+                {/* {currentPageHome === 'Routes' && (
                     <div className="h-full overflow-y-auto flex flex-col">
                         <div className="flex items-center p-2">
                             <svg onClick={() => setCurrentPageHome('Home To Schools')} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-10">
@@ -272,12 +415,12 @@ export default function HomeToSchoolSidebar({ isOpen, onClose }) {
                             </div>
                         </div>
                     </div>
-                )}
+                )} */}
 
 
 
 
-                {currentPageHome === 'RoutesNumber' && (
+                {/* {currentPageHome === 'RoutesNumber' && (
                     <div>
                         <div className="flex items-center p-2 sticky top-0 bg-gray-50">
                             <svg onClick={() => setCurrentPageHome('Routes')} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="size-10">
@@ -315,7 +458,7 @@ export default function HomeToSchoolSidebar({ isOpen, onClose }) {
                             </div>
                         ))}
                     </div>
-                )}
+                )} */}
             </div>
             {/* {downloadData && (
                 <div

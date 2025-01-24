@@ -452,7 +452,7 @@ export default function StudentSidebar({ isOpen, onClose }) {
           </table>
 
           {/* button page change */}
-          {students.length > 0 && totalPages >= 1 && (
+          {students.length > 0 && totalPages > 1 && (
             <ol className="flex items-center flex-column flex-wrap md:flex-row justify-between pt-4 p-5">
               <div className="flex flex-1 justify-between sm:hidden">
                 <button

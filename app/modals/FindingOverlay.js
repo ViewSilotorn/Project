@@ -1,8 +1,8 @@
 // LoadingOverlay.js
-import React from 'react';
+import React, { useState } from 'react';
 import '../modals/styles/findingoverlay.css';
 
-const LoadingOverlay = () => {
+const LoadingOverlay = ({ onCancel }) => {
   return (
     <div className="fixed top-0 left-0 z-50 w-screen h-screen flex items-center justify-center bg-[rgba(0,0,0,0.3)]">
       <div className="bg-white border py-2 px-5 rounded-lg flex items-center flex-col">
