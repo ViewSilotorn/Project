@@ -551,7 +551,7 @@ export default function StudentSidebar({ isOpen, onClose }) {
 }
 
 ///////////////////////////////////////////////////////
-useEffect(() => {
+ useEffect(() => {
     const loadStudents = async () => {
       const auth = getAuth();
       const user = auth.currentUser;
@@ -564,7 +564,7 @@ useEffect(() => {
       const idToken = await user.getIdToken();
       try {
         if (searchQuery.trim()) {
-          data = await fetch(
+          const data = await fetch(
             `${apiBaseUrl}/api/students/search?filter=${selectedFilter}&page=${currentPage}&find=${searchQuery}`,
             {
               method: 'GET',
@@ -573,6 +573,9 @@ useEffect(() => {
               },
             }
           );
+          setStudents(data.students);
+          setTotalCount(data.total_count);  // ตั้งค่าจำนวนรวมของนักเรียน
+
         } else {
           const data = await fetchStudents(currentPage);
           console.log(data);
@@ -584,3 +587,6 @@ useEffect(() => {
         setError(error.message);
       }
     };
+
+    loadStudents();
+  }, [currentPage]);
