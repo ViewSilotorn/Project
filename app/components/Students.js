@@ -549,3 +549,38 @@ export default function StudentSidebar({ isOpen, onClose }) {
     </aside >
   );
 }
+
+///////////////////////////////////////////////////////
+useEffect(() => {
+    const loadStudents = async () => {
+      const auth = getAuth();
+      const user = auth.currentUser;
+
+      if (!user) {
+        setError("User is not logged in");
+        return;
+      }
+
+      const idToken = await user.getIdToken();
+      try {
+        if (searchQuery.trim()) {
+          data = await fetch(
+            `${apiBaseUrl}/api/students/search?filter=${selectedFilter}&page=${currentPage}&find=${searchQuery}`,
+            {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${idToken}`,
+              },
+            }
+          );
+        } else {
+          const data = await fetchStudents(currentPage);
+          console.log(data);
+        }
+        setStudents(data.students);  // ตั้งค่าข้อมูลนักเรียน
+        setTotalCount(data.total_count);  // ตั้งค่าจำนวนรวมของนักเรียน
+        setPerPage(data.per_page);  // ตั้งค่าจำนวนนักเรียนต่อหน้า
+      } catch (error) {
+        setError(error.message);
+      }
+    };
