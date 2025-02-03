@@ -14,9 +14,12 @@ const PasswordResetModal = ({
   if (!isOpen) return null; // ถ้า modal ไม่เปิด ไม่แสดงอะไรเลย
 
   return (
-    <div className={`${st.root_login} fixed inset-0  bg-black bg-opacity-50 z-50`}>
-      <main className={st.card}>
-        <div className="flex  flex-1 flex-col justify-center px-6 py-12 lg:px-8">
+    <div
+    className={`${isOpen ? "fixed" : "hidden"
+        } overflow-y-auto overflow-x-hidden fixed inset-0 bg-gray-600 bg-opacity-50 z-50  h-full w-full flex items-center justify-center`}
+>
+
+   <div className="bg-white rounded-lg shadow-xl p-6 w-[470px] h-[419px] max-w-2xl relative z-50 max-h-[90vh] overflow-y-auto">
           <div className="sm:mx-auto sm:w-full sm:max-w-sm">
             <h2 className={st.title}>
               Reset password
@@ -64,7 +67,7 @@ const PasswordResetModal = ({
             </div>
           </div>
         </div>
-      </main >
+    
     </div>
   );
 };
