@@ -73,11 +73,14 @@ export default function Home() {
 
       // console.log("User logged in:", user);
 
-
       router.push("/map");
     } catch (error) {
-      // console.error("Error logging in:", error.message);
-      // setError("Login failed: " + error.message);
+      if (error.code === 'auth/wrong-password') {
+        alert("Incorrect password. Please try again."); // แสดงข้อความเตือน
+      } else {
+        console.error(error.message);
+        setError("Password not correct");
+      }
     }
   };
 
@@ -100,7 +103,7 @@ export default function Home() {
       // console.log("JWT Token 2:", idToken);
 
       // console.log("Signed in with Google:", user);
-      router.push("/pages/map");
+      router.push("/map");
     } catch (error) {
       // console.error("Error signing in with Google:", error.message);
       // setError("Google sign-in failed: " + error.message);
@@ -161,7 +164,7 @@ export default function Home() {
                 required
                 autoComplete="email"
                 aria-label="input"
-                className={styles.input_email}
+                className={styles.input_email }
               />
             </div>
           </div>
@@ -188,9 +191,8 @@ export default function Home() {
                 autoComplete="password"
                 className={styles.input_password}
               />
-              {error && <p className="text-red-500 text-sm">{error}</p>}
               <button type='button' onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 focus:outline-none">
+                className="absolute inset-y-0 right-0 flex items-center px-3 mt-2 text-gray-500 focus:outline-none">
                 {showPassword ? (
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6">
                     <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
@@ -206,6 +208,7 @@ export default function Home() {
                 )}
               </button>
             </div>
+            {error && <p className="text-red-500 ">{error}</p>}
           </div>
 
           <div>
@@ -217,7 +220,7 @@ export default function Home() {
         </Form>
         <div>
           <button type="submit" onClick={signInWithGoogle} className={styles.btn_google}>
-            <div className={styles.logo_google}>
+            <div className={`${styles.logo_google} gap-2`}>
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <g >
                   <path d="M19.9895 10.1873C19.9895 9.36792 19.9214 8.76998 19.7742 8.1499H10.1992V11.8482H15.8195C15.7062 12.7673 15.0943 14.1514 13.7346 15.0815L13.7155 15.2053L16.7429 17.4972L16.9527 17.5176C18.8789 15.7791 19.9895 13.2213 19.9895 10.1873Z" fill="#4285F4" />

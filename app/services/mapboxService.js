@@ -406,19 +406,13 @@ const fetchMarkers = async (idToken) => {
 };
 
 
-
-
-
-
-
-
-
 const fetchRoutes = async (idToken, map, data) => {
     // console.log("Fetching Trips and Drawing Routes...");
     try {
       const response = await fetch(`${configService.orToolURL}/vrp/solve_vrp`, {
         method: 'POST', // ใช้ POST method
         headers: {
+          'Authorization': `Bearer ${idToken}`,
           'Content-Type': 'application/json', // Content-Type เป็น JSON
         },
         body: JSON.stringify(data), // ส่ง data ใน body

@@ -104,7 +104,7 @@ const addStudent = ({ isOpenAddStudent, onCloseAddStudent, onAddStudent }) => {
                     </Link>
                     <div className="py-8 px-10">
                         <h2 className={style.title}>
-                            Add Student
+                            Add New Student
                         </h2>
                         <div className={style.p}>
                             Fill out the form below to add a new student to the system.
@@ -247,7 +247,7 @@ const addStudent = ({ isOpenAddStudent, onCloseAddStudent, onAddStudent }) => {
                                 type="submit"
                                 className={style.btn_add}
                             >
-                                Add Student
+                                Submit
                             </button>
                         </div>
                     </form>

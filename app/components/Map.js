@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, forwardRef, useImperativeHandle} from "react";
+import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
 import mapboxgl from "mapbox-gl";
 import 'mapbox-gl/dist/mapbox-gl.css';
 import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
@@ -12,6 +12,10 @@ import { subscribeAuthState } from "../services/authService";
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
 const Map = forwardRef((props, ref) => {
+
+  // const { radiusValues } = props; // รับค่าจาก Sidebar
+
+  // console.log(">> Radius: " + radiusValues);
   
   const [user, setUser] = useState(null);
   const [idToken, setIdToken] = useState(""); // State สำหรับเก็บ token
@@ -20,7 +24,7 @@ const Map = forwardRef((props, ref) => {
   const [markers, setMarkers] = useState([]); // State สำหรับเก็บข้อมูลหมุดจาก API
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
-  const [mapCenter, setMapCenter] = useState([0,0]);
+  const [mapCenter, setMapCenter] = useState([0, 0]);
   const [isLoading, setIsLoading] = useState(false); // สถานะโหลด
 
   const [depotLat, setDepotLat] = useState();
@@ -44,7 +48,8 @@ const Map = forwardRef((props, ref) => {
     handleAddCircleClick,
     clearAllElements,
     removeElement,
-    updateCircleRadius
+    updateCircleRadius,
+    goMarkerById
   }));
 
 
@@ -73,7 +78,7 @@ const Map = forwardRef((props, ref) => {
           const mark_center = await fetchMapCenter(idToken);
           setMapCenter(mark_center);
           setDepotLat(mark_center[1]);
-          setDepotLng(mark_center[0]); 
+          setDepotLng(mark_center[0]);
 
         }
       } catch (error) {
@@ -115,7 +120,7 @@ const Map = forwardRef((props, ref) => {
   //     speed: 1.5, // ความเร็วในการซูม (ค่าเริ่มต้นคือ 1.2)
   //     curve: 0.3, // ระดับความนุ่มนวลของการเคลื่อนที่
   //   });
-    
+
   //   // ตรวจสอบว่า mapCenter ไม่เป็น (0, 0) ก่อนที่จะเพิ่ม marker // ปักหมุดที่จุดศูนย์กลาง
   //   if (mapCenter[0] !== 0 && mapCenter[1] !== 0) {
   //     const centerMarker = new mapboxgl.Marker({ color: 'black' })
@@ -140,10 +145,10 @@ const Map = forwardRef((props, ref) => {
   //         placeholder: "Search for places...", // ข้อความในช่องค้นหา
   //         // proximity: { longitude: 100.523186, latitude: 13.736717 }, // โฟกัสใกล้พิกัดเริ่มต้น
   //       });
-    
+
   //       // // เพิ่ม Geocoder Control ในแผนที่
   //       map.addControl(geocoder);
-    
+
   //       // Event เมื่อผู้ใช้เลือกสถานที่
   //       geocoder.on("result", (e) => {
   //         console.log("Selected place:", e.result);
@@ -161,86 +166,85 @@ const Map = forwardRef((props, ref) => {
 
 
 
-
   // ฟังก์ชันสำหรับการสร้างแผนที่
-const initializeMap = (mapCenter) => {
-  const map = new mapboxgl.Map({
-    container: mapContainerRef.current,
-    style: "mapbox://styles/mapbox/light-v10",
-    center: mapCenter,
-    zoom: 12,
-    attributionControl: false,
-    dragPan: true,
-    scrollZoom: true,
-    boxZoom: false,
-    dragRotate: false,
-  });
+  const initializeMap = (mapCenter) => {
+    const map = new mapboxgl.Map({
+      container: mapContainerRef.current,
+      style: "mapbox://styles/mapbox/light-v11",
+      center: mapCenter,
+      zoom: 12,
+      attributionControl: false,
+      dragPan: true,
+      scrollZoom: true,
+      boxZoom: false,
+      dragRotate: false,
+    });
 
-  // map.flyTo({
-  //   center: mapCenter,
-  //   zoom: 13,
-  //   speed: 1.5,
-  //   curve: 0.3,
-  // });
+    // map.flyTo({
+    //   center: mapCenter,
+    //   zoom: 13,
+    //   speed: 1.5,
+    //   curve: 0.3,
+    // });
 
-  if (mapCenter[0] !== 0 && mapCenter[1] !== 0) {
-    new mapboxgl.Marker({ color: "black" }).setLngLat(mapCenter).addTo(map);
-  }
+    if (mapCenter[0] !== 0 && mapCenter[1] !== 0) {
+      new mapboxgl.Marker({ color: "black" }).setLngLat(mapCenter).addTo(map);
+    }
 
-  return map;
-};
+    return map;
+  };
 
-//---------------------------------------------------
+  //---------------------------------------------------
 
-// ฟังก์ชันสำหรับเพิ่ม Geocoder ลงในแผนที่
-// const addGeocoder = (map) => {
-//   const geocoder = new MapboxGeocoder({
-//     accessToken: mapboxgl.accessToken,
-//     mapboxgl: mapboxgl,
-//     placeholder: "Search for places...",
-//     flyTo: false, // ปิดการ zoom ไปยังตำแหน่งที่ค้นหา
-//   });
+  // ฟังก์ชันสำหรับเพิ่ม Geocoder ลงในแผนที่
+  // const addGeocoder = (map) => {
+  //   const geocoder = new MapboxGeocoder({
+  //     accessToken: mapboxgl.accessToken,
+  //     mapboxgl: mapboxgl,
+  //     placeholder: "Search for places...",
+  //     flyTo: false, // ปิดการ zoom ไปยังตำแหน่งที่ค้นหา
+  //   });
 
-//   map.addControl(geocoder);
+  //   map.addControl(geocoder);
 
-//   geocoder.on("result", (e) => {
-//     console.log("Selected place:", e.result);
-//     const [lng, lat] = e.result.center;
-//     new mapboxgl.Marker().setLngLat([lng, lat]).addTo(map);
-//     // map.flyTo({ center: [lng, lat], zoom: 14 });
-//     console.log("---> +++", lng, lat);
-//   });
-// };
+  //   geocoder.on("result", (e) => {
+  //     console.log("Selected place:", e.result);
+  //     const [lng, lat] = e.result.center;
+  //     new mapboxgl.Marker().setLngLat([lng, lat]).addTo(map);
+  //     // map.flyTo({ center: [lng, lat], zoom: 14 });
+  //     console.log("---> +++", lng, lat);
+  //   });
+  // };
 
 
 
-//---------------------------------------------------
+  //---------------------------------------------------
 
-// useEffect(() => {
-//   if (!mapCenter || (mapCenter[0] === 0 && mapCenter[1] === 0)) return;
+  // useEffect(() => {
+  //   if (!mapCenter || (mapCenter[0] === 0 && mapCenter[1] === 0)) return;
 
-//   const map = initializeMap(mapCenter, selectedStyle);
-//   mapRef.current = map;
+  //   const map = initializeMap(mapCenter, selectedStyle);
+  //   mapRef.current = map;
 
-//   // เพิ่ม Geocoder
-//   addGeocoder(map);
+  //   // เพิ่ม Geocoder
+  //   addGeocoder(map);
 
-//   return () => map.remove(); // Cleanup เมื่อ component ถูกลบ
-// }, [mapCenter, selectedStyle]);
+  //   return () => map.remove(); // Cleanup เมื่อ component ถูกลบ
+  // }, [mapCenter, selectedStyle]);
 
 
 
 
 
   // หมุด (Markers) ลงในแผนที่ Mapbox
-2
+  2
   // useEffect(() => {
   //   if (mapRef.current && markers.length > 0) {
   //     // ลบหมุดเดิมก่อน เพื่อไม่ให้มีหมุดซ้ำ
   //     const existingMarkers = document.querySelectorAll('.custom-marker');
   //     existingMarkers.forEach((marker) => marker.remove());
   //     let currentPopup = null; 
-  
+
   //     markers.forEach(({ latitude, longitude, first_name, last_name, age, gender, address, status }) => {
   //       const el = document.createElement('div');
   //       el.className = 'custom-marker';
@@ -250,7 +254,7 @@ const initializeMap = (mapCenter) => {
   //       // el.style.backgroundColor = status === 0 ? '#FFECA1' : '#58d68d'; // เปลี่ยนสีเป็นเทาถ้า status เป็น 0
   //       el.style.borderRadius = '50%'; // ทำให้เป็นวงกลม
   //       el.style.boxShadow = '0 0 5px rgba(0, 0, 0, 0.5)'; // เพิ่มเงาเล็กน้อย
-  
+
   //       const marker = new mapboxgl.Marker({ element: el })
   //         .setLngLat([parseFloat(longitude), parseFloat(latitude)]) // แปลง latitude และ longitude เป็นตัวเลข
   //         .setPopup(
@@ -265,31 +269,32 @@ const initializeMap = (mapCenter) => {
   //         )
   //         .addTo(mapRef.current);
   //     });
-      
-  //   }
-    
-  // }, [mapCenter, selectedStyle]);
 
+  //   }
+
+  // }, [mapCenter, selectedStyle]);
+  const markersRef = useRef({});
+  
   function addMarkersToMap(map, markers) {
     // ลบหมุดเดิมก่อน เพื่อไม่ให้มีหมุดซ้ำ
     const existingMarkers = document.querySelectorAll('.custom-marker');
     existingMarkers.forEach((marker) => marker.remove());
-  
-    markers.forEach(({ latitude, longitude, first_name, last_name, age, gender, address, status }) => {
+
+    markers.forEach(({ id,latitude, longitude, first_name, last_name, age, gender, address, status }) => {
       const el = document.createElement('div');
       el.className = 'custom-marker';
       el.style.width = '8px';
       el.style.height = '8px';
-      el.style.backgroundColor = '#07A1E8'; // สีของจุด
+      el.style.backgroundColor = '#31C48D'; // สีของจุด
       el.style.borderRadius = '50%';
       el.style.boxShadow = '0 0 5px rgba(0, 0, 0, 0.5)';
-  
+
       const marker = new mapboxgl.Marker({ element: el })
         .setLngLat([parseFloat(longitude), parseFloat(latitude)])
         .setPopup(
           new mapboxgl.Popup({ closeButton: false }).setHTML(
-            `<div>
-              <h3>${first_name} ${last_name}</h3>
+            `<div style="max-width: 250px; word-wrap: break-word; overflow-wrap: break-word; word-break: break-word; white-space: normal;">
+              <h1 style="font-size: 15px"><strong>${first_name} ${last_name}</strong></h1>
               <p><strong>Age:</strong> ${age}</p>
               <p><strong>Gender:</strong> ${gender}</p>
               <p><strong>Address:</strong> ${address}</p>
@@ -297,8 +302,49 @@ const initializeMap = (mapCenter) => {
           )
         )
         .addTo(map);
+      markersRef.current[id] = marker; // Use useRef to persist the markers
+      console.log('MarkersRef:', markersRef.current);
+
+      el.addEventListener('click', () => {
+        map.flyTo({
+          center: [parseFloat(longitude), parseFloat(latitude)],
+          zoom: 17,
+          speed: 1.5,
+          curve: 1.5,
+          easing(t) {
+            return t;
+          },
+        });
+        marker.togglePopup();
+      });
     });
   }
+
+  const goMarkerById = (id) => {
+    // Access markersRef correctly
+    const marker = markersRef.current[id];
+    if (marker) {
+      // Close any open popups first
+      const allPopups = document.querySelectorAll('.mapboxgl-popup'); // Get all popups
+      allPopups.forEach(popup => popup.remove()); // Remove all open popups
+
+      // Fly to the marker
+      mapRef.current.flyTo({
+        center: marker.getLngLat(), // Ensure map is centered at the marker position
+        zoom: 17,
+        speed: 1.5,
+        curve: 1.5,
+        easing(t) {
+          return t;
+        },
+      });
+
+      // Show the popup associated with the marker
+      marker.getPopup().addTo(mapRef.current); // Directly add the popup to the map
+    } else {
+      console.warn(`Marker with id ${id} not found.`);
+    }
+  };
 
   // useEffect(() => {
   //   if (mapRef.current && markers.length > 0) {
@@ -315,18 +361,18 @@ const initializeMap = (mapCenter) => {
   const [AddCircleClick, setAddCircleClick] = useState(false);
   const [mapElements, setMapElements] = useState([]); // เก็บข้อมูลหมุดและวงกลมทั้งหมด
 
-const handleAddCircleClick = () => {
-  return new Promise((resolve) => {
-    setAddCircleClick((prev) => !prev); // สลับค่าระหว่าง true และ false
+  const handleAddCircleClick = () => {
+    return new Promise((resolve) => {
+      setAddCircleClick((prev) => !prev); // สลับค่าระหว่าง true และ false
 
-    if (mapRef.current) {
-      mapRef.current.on('click', async (event) => {
-        const { lng, lat } = event.lngLat;
-        resolve({ lng, lat }); // ส่งค่าพิกัดกลับหลังจากคลิก
-      });
-    }
-  });
-};
+      if (mapRef.current) {
+        mapRef.current.on('click', async (event) => {
+          const { lng, lat } = event.lngLat;
+          resolve({ lng, lat }); // ส่งค่าพิกัดกลับหลังจากคลิก
+        });
+      }
+    });
+  };
 
 
   useEffect(() => {
@@ -386,20 +432,20 @@ const handleAddCircleClick = () => {
   // const onMapClick = (event, map) => {
   //   const { lng, lat } = event.lngLat;
   //   const circleId = `circle-${lng}-${lat}`;
-  
+
   //   const marker = new mapboxgl.Marker({ color: "red", draggable: true })
   //     .setLngLat([lng, lat])
   //     .addTo(map);
-  
+
   //   const radius = 0.7;
   //   drawCircle([lng, lat], radius, map, circleId);
-  
+
   //   marker.on("dragend", () => {
   //     const newLngLat = marker.getLngLat();
-  
+
   //     // วาดวงกลมใหม่ที่ตำแหน่งล่าสุด
   //     drawCircle([newLngLat.lng, newLngLat.lat], radius, map, circleId);
-  
+
   //     // อัปเดตตำแหน่งของหมุดและวงกลมใน state
   //     setMapElements((prev) =>
   //       prev.map((el) =>
@@ -408,18 +454,18 @@ const handleAddCircleClick = () => {
   //           : el
   //       )
   //     );
-  
+
   //     console.log("New Position: ----> ", newLngLat);
   //     // ส่งพิกัดที่อัปเดตไปยัง Parent Component
   //     onMapElementsUpdate(mapElements);
   //   });
-  
+
   //   // บันทึกหมุดและค่าพิกัดเริ่มต้นใน state
   //   setMapElements((prev) => [
   //     ...prev,
   //     { marker, circleId, map, lng, lat },
   //   ]);
-  
+
   //   setAddCircleClick(false);
   //       // ส่งพิกัดเริ่มต้นไปยัง Parent Component
   //     onMapElementsUpdate(mapElements);
@@ -440,12 +486,12 @@ const handleAddCircleClick = () => {
       .addTo(map);
 
     const radius = 1;
-    
+
     drawCircle([lng, lat], radius, map, circleId);
 
     marker.on("dragend", () => {
       const newLngLat = marker.getLngLat();
-  
+
       drawCircle([newLngLat.lng, newLngLat.lat], radius, map, circleId);
 
       setMapElements((prev) =>
@@ -476,10 +522,10 @@ const handleAddCircleClick = () => {
 
   const updateCircleRadius = (idx, radius) => {
     const element = mapElements[idx];
-    console.log("นี้-> "+ radius);
-    
+    console.log("นี้-> " + radius);
+
     if (element) {
-      const {circleId, map, lng, lat } = element;
+      const { circleId, map, lng, lat } = element;
       drawCircle([lng, lat], radius, map, circleId); // วาดวงกลมใหม่ที่ตำแหน่งเดิมด้วยรัศมีที่อัปเดต
     }
   };
@@ -492,24 +538,24 @@ const handleAddCircleClick = () => {
   // const onMapClick = (event, map) => {
   //   const { lng, lat } = event.lngLat;
   //   const circleId = `circle-${lng}-${lat}`; // สร้าง ID สำหรับวงกลม
-  
+
   //   // สร้างหมุด
   //   const marker = new mapboxgl.Marker({ color: "red", draggable: true })
   //     .setLngLat([lng, lat])
   //     .addTo(map);
-  
+
   //   const radius = 0.7;
-  
+
   //   // วาดวงกลม
   //   drawCircle([lng, lat], radius, map, circleId);
-  
+
   //   // ตั้งค่าเมื่อหมุดถูกลาก
   //   marker.on("dragend", () => {
   //     const newLngLat = marker.getLngLat();
-  
+
   //     // วาดวงกลมใหม่ที่ตำแหน่งล่าสุด
   //     drawCircle([newLngLat.lng, newLngLat.lat], radius, map, circleId);
-  
+
   //     // อัปเดตตำแหน่งของหมุดใน state
   //     setMapElements((prev) => {
   //       const updatedElements = prev.map((el) =>
@@ -517,63 +563,63 @@ const handleAddCircleClick = () => {
   //           ? { ...el, lng: newLngLat.lng, lat: newLngLat.lat }
   //           : el
   //       );
-  
+
   //       // เรียกฟังก์ชันอัปเดต Parent Component
   //       onMapElementsUpdate(updatedElements);
-  
+
   //       return updatedElements;
   //     });
   //   });
-  
+
   //   // เพิ่มหมุดใหม่ใน state
   //   setMapElements((prev) => {
   //     const updatedElements = [
   //       ...prev,
   //       { marker, circleId, map, lng, lat },
   //     ];
-  
+
   //     // เรียกฟังก์ชันอัปเดต Parent Component
   //     onMapElementsUpdate(updatedElements);
-  
+
   //     return updatedElements;
   //   });
-  
+
   //   setAddCircleClick(false); // ปิดสถานะการเพิ่มหมุด
   // };
 
   const removeElement = (idx) => {
     const element = mapElements[idx]; // ค้นหา element ตาม index
     if (!element) return;
-  
+
     const { marker, circleId, map } = element;
-  
+
     // ลบหมุด
     marker.remove();
-  
+
     // ลบวงกลม
     if (map.getLayer(circleId)) map.removeLayer(circleId);
     if (map.getSource(circleId)) map.removeSource(circleId);
-  
+
     // อัปเดต state
     setMapElements((prev) => {
       const updatedElements = prev.filter((_, i) => i !== idx);
-  
+
       // ส่งข้อมูลใหม่ไปยัง Parent Component
       if (typeof onMapElementsUpdate === "function") {
         props.onMapElementsUpdate(updatedElements);
       }
-  
+
       return updatedElements;
     });
   };
-  
+
   const clearAllElements = () => {
     mapElements.forEach(({ marker, circleId, map }) => {
       marker.remove();
       if (map.getLayer(circleId)) map.removeLayer(circleId);
       if (map.getSource(circleId)) map.removeSource(circleId);
     });
-  
+
     // อัปเดต state และแจ้ง Parent Component
     setMapElements([]); // ลบข้อมูลใน mapElements
     if (typeof onMapElementsUpdate === "function") {
@@ -619,23 +665,23 @@ const handleAddCircleClick = () => {
       max_travel_time: max_time * 60, // แปลงเวลาเป็นวินาที
       locations: locations,
     };
-  
+
     // รีเซ็ตสถานะ
-    setRouteColors([]); 
+    setRouteColors([]);
     setRoutes([]);
     resetRoute(mapRef.current);
-  
+
     setIsLoading(true); // เริ่มโหลด
-  
+
     try {
       // เรียก fetchRoutes เพื่อคำนวณเส้นทาง
       const result = await fetchRoutes(idToken, mapRef.current, data);
-  
+
       // สร้างสีสำหรับแต่ละเส้นทาง
       const colors = result.map(() => getRandomHexColor());
 
       // console.log("Add "+colors);
-      
+
       setRouteColors(colors);
       setRoutes(result);
 
@@ -660,14 +706,14 @@ const handleAddCircleClick = () => {
 
       const distance = [];
       const duration = [];
-      
+
       // Create an array of Promises
       const drawPromises = result.map(async (route, index) => {
         const routeKey = `route ${index + 1}`;
         const coordinates = route[routeKey];
 
         console.log("routeKey in MAP :" + routeKey);
-        
+
         if (coordinates) {
           try {
             const didu = await drawRoute(mapRef.current, coordinates, routeKey, colors[index], type);
@@ -681,12 +727,12 @@ const handleAddCircleClick = () => {
         // return Promise.resolve(); // Return a resolved Promise if coordinates are missing
         return null;
       });
-      
+
       // Wait for all Promises to complete
       const diduArray = await Promise.all(drawPromises);
-  
-      return { routes: result, routeColors: colors, routeDistance: distance, routeDuration: duration, Didu: JSON.stringify(diduArray, null, 2)};
-      
+
+      return { routes: result, routeColors: colors, routeDistance: distance, routeDuration: duration, Didu: JSON.stringify(diduArray, null, 2) };
+
     } catch (error) {
       console.error("Error drawing routes:", error);
       throw error; // ส่งข้อผิดพลาดออกไป
@@ -694,8 +740,8 @@ const handleAddCircleClick = () => {
       setIsLoading(false); // สิ้นสุดการโหลด
     }
   };
-  
-  
+
+
 
 
   const handleReset = () => {
@@ -706,40 +752,40 @@ const handleAddCircleClick = () => {
 
 
 
-// time count
-const [elapsedTime, setElapsedTime] = useState(0); // เก็บเวลาที่ผ่านไป
+  // time count
+  const [elapsedTime, setElapsedTime] = useState(0); // เก็บเวลาที่ผ่านไป
 
-useEffect(() => {
-  let timer;
-  if (isLoading) {
-    setElapsedTime(0); // รีเซ็ตเวลาเมื่อเริ่มโหลด
-    timer = setInterval(() => {
-      setElapsedTime((prev) => prev + 1); // เพิ่มเวลาทีละ 1 วินาที
-    }, 1000);
-  } else {
-    clearInterval(timer); // หยุดการนับเมื่อโหลดเสร็จ
-  }
-  return () => clearInterval(timer); // ล้าง timer เมื่อ component ถูก unmount
-}, [isLoading]);
+  useEffect(() => {
+    let timer;
+    if (isLoading) {
+      setElapsedTime(0); // รีเซ็ตเวลาเมื่อเริ่มโหลด
+      timer = setInterval(() => {
+        setElapsedTime((prev) => prev + 1); // เพิ่มเวลาทีละ 1 วินาที
+      }, 1000);
+    } else {
+      clearInterval(timer); // หยุดการนับเมื่อโหลดเสร็จ
+    }
+    return () => clearInterval(timer); // ล้าง timer เมื่อ component ถูก unmount
+  }, [isLoading]);
 
 
 
-const handleDrawRoute = async(route, routeKey, routeColor, type) => {
-  // console.log(route);
-  // console.log(routeKey);
-  // console.log(routeColor);
-  const coordinates = route[routeKey];
-  if (coordinates) {
-    const result = await drawRoute(mapRef.current, coordinates, routeKey, routeColor, type); // แสดงลำดับหมุด
+  const handleDrawRoute = async (route, routeKey, routeColor, type) => {
+    // console.log(route);
+    // console.log(routeKey);
+    // console.log(routeColor);
+    const coordinates = route[routeKey];
+    if (coordinates) {
+      const result = await drawRoute(mapRef.current, coordinates, routeKey, routeColor, type); // แสดงลำดับหมุด
       // console.log(".....> "+result);
       return result;
-  }
-};
+    }
+  };
 
 
-  
 
-// -------------------------------------------------------------------------
+
+  // -------------------------------------------------------------------------
   return (
     <div className="h-screen w-full">
       {/* Map Container */}
@@ -747,8 +793,6 @@ const handleDrawRoute = async(route, routeKey, routeColor, type) => {
       <p className="absolute bottom-4 right-4 text-gray-600">
         {AddCircleClick ? "Choose a location ... " : " "}
       </p>
-
-
 
 
       <ul className="absolute right-0 bottom-0">

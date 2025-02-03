@@ -174,7 +174,7 @@ const ListStudent = ({ isOpenListStudent, onCloseListStudent, onAddListStudent})
                     </div>
                 </div>
                 <div className="flex justify-center space-x-4 mt-7">
-                    <button className={stAddList.btn_add} onClick={handleAddStudent}>Add Student</button>
+                    <button className={stAddList.btn_add} onClick={handleAddStudent}>Submit</button>
                     <button className={stAddList.btn_cancel} onClick={onCloseListStudent}>Cancel</button>
                 </div>
             </div >

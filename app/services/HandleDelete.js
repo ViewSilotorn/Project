@@ -31,15 +31,18 @@ const HandleDelete = async (id) => {
 
     // ตรวจสอบว่าการลบสำเร็จหรือไม่
     if (response.ok) {
-      alert("Data deleted successfully");
+      // alert("Data deleted successfully");
       console.log("Data deleted successfully:", result);
+      return true;
     } else {
-      alert("Failed to delete data");
+      // alert("Failed to delete data");
       console.error("Failed to delete data:", result);
+      return false;
     }
   } catch (error) {
     // จัดการข้อผิดพลาดและแสดงข้อความใน console
     console.error("Error occurred:", error);
+    return false
   }
 };
 

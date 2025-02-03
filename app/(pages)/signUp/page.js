@@ -185,7 +185,7 @@ export default function SignUp() {
                 </Form>
                 <div>
                     <button type="submit" className={styles.btn_google}>
-                        <div className={styles.logo_google}>
+                        <div className={`${styles.logo_google} gap-2`}>
                             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <g>
                                     <path d="M19.9895 10.1873C19.9895 9.36792 19.9214 8.76998 19.7742 8.1499H10.1992V11.8482H15.8195C15.7062 12.7673 15.0943 14.1514 13.7346 15.0815L13.7155 15.2053L16.7429 17.4972L16.9527 17.5176C18.8789 15.7791 19.9895 13.2213 19.9895 10.1873Z" fill="#4285F4" />

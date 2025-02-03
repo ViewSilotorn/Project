@@ -15,6 +15,7 @@ import ButToSchools from "../../components/BusToSchool";
 import HistoryRoute from "../../components/HistoryRoute";
 import Student from "../../components/Students";
 import Route from "../../components/Route";
+import SchoolsPage from "../../components/School";
 import Logo from '../../Image/Logo.png'
 
 // Modals
@@ -116,6 +117,8 @@ export default function Sidebar() {
                 return <Route mapRef={mapRef} {...commonProps} {...props} />;
             case "DetailRoute":
                 return <DetailRoute {...commonProps} />;
+            case "School":
+                return <SchoolsPage {...commonProps} />;
             default:
                 return null;
         }
@@ -137,12 +140,21 @@ export default function Sidebar() {
         return () => unsubscribe();
     }, [auth, router]);
 
+    const [open, setOpen] = useState(false);
+
     const handleSignOut = async () => {
+        // const confirmSignOut = window.confirm("Are you sure you want to sign out?");
+        // if (!confirmSignOut) {
+        //     return; // หยุดการทำงานถ้าผู้ใช้ยกเลิก
+        // }
+
+
         try {
             await signOut(auth);
             router.push("/"); // Redirect to the home page after sign out
         } catch (error) {
             console.error("Error signing out:", error.message);
+            alert(`Error signing out: ${error.message}`);
         }
     };
 
@@ -175,7 +187,7 @@ export default function Sidebar() {
                 onClick={toggleSidebar}
                 aria-controls="logo-sidebar"
                 type="button"
-                className="fixed top-4 left-4 z-50 inline-flex items-center p-3 text-sm text-gray-500 bg-white rounded-2xl"
+                className="fixed top-4 left-4 z-40 inline-flex items-center p-3 text-sm text-gray-500 bg-white rounded-2xl"
             >
                 {/* <span className="sr-only">Open sidebar</span> */}
                 <svg
@@ -198,7 +210,7 @@ export default function Sidebar() {
             <div
                 id="hs-sidebar-footer"
                 className={`hs-overlay fixed transition-transform ${isOpen ? "sm:translate-x-0" : "-translate-x-full"
-                    } h-screen z-[60] bg-white`}
+                    } h-screen z-[50] bg-white`}
             >
                 <div className="relative flex flex-col h-screen max-h-full w-64">
                     <header className="p-4 flex justify-between items-center gap-x-2">
@@ -393,6 +405,8 @@ export default function Sidebar() {
                         </span> */}
                                     </a>
                                 </li>
+
+
                             </ul>
                         </div>
                     </nav>
@@ -456,16 +470,37 @@ export default function Sidebar() {
                                 <a onClick={() => { setShowPopupReset(true); setIsOpen(!isOpen); }} className="flex items-center gap-x-3 py-2 px-3 rounded-lg text-sm text-gray-800 hover:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none focus:outline-none focus:bg-gray-100 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:focus:bg-neutral-800">
                                     Reset Password
                                 </a>
-                                <a onClick={handleSignOut} className="flex items-center gap-x-3 py-2 px-3 rounded-lg text-sm text-gray-800 hover:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none focus:outline-none focus:bg-gray-100 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:focus:bg-neutral-800">
+                                <a onClick={() => setOpen(true)} className="flex items-center gap-x-3 py-2 px-3 rounded-lg text-sm text-gray-800 hover:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none focus:outline-none focus:bg-gray-100 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:focus:bg-neutral-800">
                                     Sign out
                                 </a>
                             </div>
                         </div>
                     )}
-
                 </div>
             </div>
-
+            {open && (
+                <div className="fixed inset-0  z-50 flex items-center justify-center bg-black bg-opacity-50">
+                    <div className="bg-white p-6 rounded-lg shadow-lg w-80">
+                        <h2 className="text-lg font-semibold text-gray-900">
+                            Are you sure you want to sign out?
+                        </h2>
+                        <div className="mt-4 flex justify-end space-x-2">
+                            <button
+                                onClick={() => setOpen(false)}
+                                className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleSignOut}
+                                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                            >
+                                Sign Out
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
             {/* Additional Sidebar
       {activeComponent === 'HomeToSchools' && (
         <HomeToSchools isOpen={true} openComponent={(componentName) => setActiveComponent(componentName)} />

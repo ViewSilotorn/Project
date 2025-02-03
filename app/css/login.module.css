@@ -175,7 +175,7 @@
     opacity: 1;
     align-items: center;
     justify-content: center;
-    gap: 10
+    /* gap: 10; */
 }
 
 .text_account {

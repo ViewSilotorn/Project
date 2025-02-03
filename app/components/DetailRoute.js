@@ -1,93 +1,158 @@
 "use client";
+import { useEffect, useState } from "react";
+import styles from '../css/HomeToSchools.module.css';
+import { fetchStudentBatchData } from "../services/studentService";
+import { subscribeAuthState } from "../services/authService"; // Service สำหรับ auth state
 
-export default function DetailRouteSidebar({ route, routeIndex, color, distance, duration, onGoBack,  }) {
+export default function DetailRouteSidebar({ route, routeIndex, color, distance, duration, onGoBack, mapRef }) {
   // console.log("Dis "+distance, "Dura "+duration);
-  
+  const [user, setUser] = useState(null);
+  const [idToken, setIdToken] = useState("");
+  const [coordinates, setCoordinates] = useState([]);
+  const [studentData, setStudentData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = subscribeAuthState(setUser, setIdToken);
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const allCoordinates = [];
+
+    if (route && typeof route === "object") {
+      Object.entries(route).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+          value.forEach((coordinate) => {
+            const [lat, lng] = coordinate;
+            allCoordinates.push({ lat, lng });
+          });
+        }
+      });
+    }
+
+    setCoordinates(allCoordinates);
+    console.log("Coordinates length:", allCoordinates.length);
+  }, [route]);
+
+  useEffect(() => {
+    const fetchStudentDataForBatch = async () => {
+      try {
+        const fetchedData = await fetchStudentBatchData(idToken, coordinates);
+        setStudentData(fetchedData);
+        console.log("Fetched Student Data:", fetchedData);
+      } catch (error) {
+        console.error("Error fetching student data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (coordinates.length > 0 && idToken) {
+      fetchStudentDataForBatch();
+    }
+  }, [coordinates, idToken]);
+
+  const idClick = (id) => {
+    console.log("นี่ๆ ID: " + id);
+  };
+
+  const goMarker = (id) => {
+    mapRef.current.goMarkerById(id);
+  };
+
 
   return (
     <aside
       id="detail-sidebar"
       className="fixed z-50 w-full sm:w-[500px] 
         h-[450px] sm:h-screen
-        bg-gray-100 border-t sm:border-t-0 sm:border-r border-gray-300
+        bg-white border-t sm:border-t-0 sm:border-r border-gray-300
         bottom-0 sm:top-0 lg:top-0
         transition-transform"
     >
       <div className="h-full flex flex-col px-3 pb-0">
 
         {/* Sticky top */}
-        <div className="sticky top-0 bg-gray-100">
-          <div className="flex items-center justify-between mt-2 mb-2">
+        <div className="sticky top-0 bg-white">
+          <div className="flex items-center justify-between mt-5 mb-2">
             <button
               onClick={onGoBack}
-              className="bg-gray-300 text-black p-2 rounded hover:bg-gray-400 flex items-center"
+              className="p-2 rounded"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="1.5"
-                stroke="currentColor"
-                className="size-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
-                />
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="size-8">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
               </svg>
+
             </button>
+            <div className="flex items-center grow justify-center mr-5">
+              <div style={{ width: '40px', height: '40px', backgroundColor: color}}>
+              </div>
+              <p className="px-2">
+                <strong>Route:</strong> {routeIndex.replace("route ", "")}
+              </p>
+
+            </div>
           </div>
+
         </div>
+        <hr></hr>
+        <div className=" mt-5">
 
-        <div className="mb-[5px] ">
-          <div className="flex mt-5 items-center">
-          <div style={{ width: '25px' , height:'25px', backgroundColor: color, borderRadius: '3px', marginRight: '5px'}}>
-          </div>
-            <p>
-              <strong>Route:</strong> {routeIndex.replace("route ", "")}
-            </p>
 
-          </div>
-
-          <div className="flex justify-between mb-2 mt">
+          <div className="flex justify-between">
             <p className="text-black">
               <strong>Distance:</strong> {distance} KM.
             </p>
 
             <p className="text-black">
-              <strong>Distance:</strong> {duration} MIN.
+              <strong>Duration:</strong> {duration} MIN.
             </p>
           </div>
 
-            {/* <p className="mt-4">
+          {/* <p className="mt-4">
             <strong>Route Info:</strong> {route}
           </p> */}
         </div>
-        <hr></hr>
 
-        <div className="overflow-y-auto mt-5 mb-5">
-            {Object.entries(route).map(([key, value], index) => (
-              <div key={index} >
-                <ul >
-                  {value.map((coordinate, idx) => (
-                    <div className="cursor-pointer" key={idx} style={{ backgroundColor: '#CECECE', height: '45px', marginBottom: '10px', borderRadius: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {/* แสดงว่าเป็น Start หรือ Stop */}
-                      {idx === 0 && <p className="text-green-500 font-bold mr-4">Start Schools</p>}
-                      {idx === value.length - 1 && (
-                        <p className="text-red-500 font-bold mr-4">Stop Schools</p>
-                      )}
-                      <p className="text-black mr-4">{idx + 1} #</p>
-                      <p className="text-black">[{coordinate[0]}, {coordinate[1]}]</p>
-                    </div>
 
-                  ))}
-                </ul>
-                <p className="text-black">{value.length}</p>
+        <div className="overflow-y-auto mt-2 mb-5 ">
+          {studentData.map((data, index) => (
+
+            <div
+              key={index}
+              onClick={() => goMarker(data.id)}
+              className={`${styles.card_detail} mt-2 cursor-pointer  hover:bg-gray-100 `}
+              style={{
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <div className="px-3">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="#265CB3" className="size-10">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                </svg>
               </div>
-              
-            ))}
-          </div>
+              <div className="flex w-full flex-col">
+                <div className="flex items-center justify-between">
+                  <h5 className={styles.text_name}>
+                    {data.first_name}   {data.last_name}
+                  </h5>
+                </div>
+                <p className={styles.text_adress}>
+                  {data.address}
+                </p>
+              </div>
+              {/* <div
+                className="flex items-center mr-2 sm:mr-4 hover:text-blue-500">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="size-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                </svg>
+              </div> */}
+            </div>
+          ))}
+        </div>
 
 
       </div>

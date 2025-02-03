@@ -66,7 +66,7 @@
 
 .btn_add {
     /* Layout Properties */
-    width: 130px;
+    width: 150px;
     height: 40px;
     /* UI Properties */
     background: var(--unnamed-color-ffffff) 0% 0% no-repeat padding-box;
@@ -84,6 +84,12 @@
     letter-spacing: 0px;
     color: #707070;
 }
+
+.btn_add:hover {
+    border: 2px solid #007BFF;
+    color: #007BFF;
+}
+
 
 .btn_addList {
     /* Layout Properties */
@@ -106,6 +112,11 @@
     color: #808080;
 }
 
+.btn_addList:hover {
+    border: 2px solid #007BFF;
+    color: #007BFF;
+}
+
 .btn_example {
     width: 130px;
     height: 40px;
@@ -122,6 +133,11 @@
     font: normal normal normal 16px/19px Roboto;
     letter-spacing: 0px;
     color: #808080;
+}
+
+.btn_example:hover {
+    border: 2px solid #007BFF;
+    color: #007BFF;
 }
 
 .Header_FN {
@@ -287,5 +303,147 @@
     font: normal normal normal 16px/19px Roboto;
     letter-spacing: 0px;
     color: #000000;
+    opacity: 1;
+}
+
+.modal_overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    /* พื้นหลังมืด */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal_content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+}
+
+/* .btn_yes,
+.btn_no {
+    margin: 10px;
+    padding: 10px;
+    border: none;
+    cursor: pointer;
+} */
+
+/* .btn_yes {
+    background-color: green;
+    color: white;
+}
+
+.btn_no {
+    background-color: red;
+    color: white;
+} */
+
+.card {
+    left: 706px;
+    width: 509px;
+    height: 225px;
+    /* UI Properties */
+    background: var(--unnamed-color-ffffff) 0% 0% no-repeat padding-box;
+    background: #FFFFFF 0% 0% no-repeat padding-box;
+    box-shadow: 0px 3px 6px #00000029;
+    border-radius: 17px;
+    opacity: 1;
+}
+
+.close {
+    top: 453px;
+    left: 1170px;
+    width: 20px;
+    height: 20px;
+    opacity: 1;
+}
+
+.title {
+    /* UI Properties */
+    font: var(--unnamed-font-style-normal) normal var(--unnamed-font-weight-bold) 28px/34px var(--unnamed-font-family-roboto);
+    letter-spacing: var(--unnamed-character-spacing-0);
+    color: var(--unnamed-color-1a1a1a);
+    text-align: center;
+    font: normal normal bold 28px/34px Roboto;
+    letter-spacing: 0px;
+    color: #1A1A1A;
+    opacity: 1;
+}
+
+.p {
+    /* UI Properties */
+    font: var(--unnamed-font-style-normal) normal var(--unnamed-font-weight-normal) var(--unnamed-font-size-18)/var(--unnamed-line-spacing-22) var(--unnamed-font-family-roboto);
+    letter-spacing: var(--unnamed-character-spacing-0);
+    color: var(--unnamed-color-000000);
+    text-align: center;
+    font: normal normal normal 18px/22px Roboto;
+    letter-spacing: 0px;
+    color: #000000;
+    opacity: 1;
+}
+
+.btn_download {
+    width: 220px;
+    height: 60px;
+    width: 100%;
+    /* UI Properties */
+    background: var(--unnamed-color-007bff) 0% 0% no-repeat padding-box;
+    background: #007BFF 0% 0% no-repeat padding-box;
+    border-radius: 7px;
+    opacity: 1;
+}
+
+.text_download {
+    /* UI Properties */
+    font: var(--unnamed-font-style-normal) normal var(--unnamed-font-weight-normal) var(--unnamed-font-size-18)/var(--unnamed-line-spacing-22) var(--unnamed-font-family-roboto);
+    letter-spacing: var(--unnamed-character-spacing-0);
+    color: var(--unnamed-color-ffffff);
+    text-align: center;
+    font: normal normal normal 18px/22px Roboto;
+    letter-spacing: 0px;
+    color: #FFFFFF;
+    opacity: 1;
+}
+
+.btn_cancel {
+    width: 220px;
+    height: 60px;
+    width: 100%;
+    /* UI Properties */
+    border: 2px solid #C7C5C5;
+    border-radius: 7px;
+    opacity: 1;
+}
+
+.text_cancel {
+    /* UI Properties */
+    font: var(--unnamed-font-style-normal) normal var(--unnamed-font-weight-normal) var(--unnamed-font-size-18)/var(--unnamed-line-spacing-22) var(--unnamed-font-family-roboto);
+    letter-spacing: var(--unnamed-character-spacing-0);
+    color: var(--unnamed-color-000000);
+    text-align: center;
+    font: normal normal normal 18px/22px Roboto;
+    letter-spacing: 0px;
+    color: #000000;
+    opacity: 1;
+}
+
+.title {
+    /* UI Properties */
+    font: var(--unnamed-font-style-normal) normal var(--unnamed-font-weight-bold) 28px/34px var(--unnamed-font-family-roboto);
+    letter-spacing: var(--unnamed-character-spacing-0);
+    color: var(--unnamed-color-1a1a1a);
+    text-align: center;
+    font: normal normal bold 28px/34px Roboto;
+    letter-spacing: 0px;
+    color: #1A1A1A;
     opacity: 1;
 }
