@@ -1,10 +1,10 @@
 "use client";
 import style from '../css/side.module.css';
-import styles from '../css/nav.module.css';
 import Link from 'next/link';
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getAuth } from "firebase/auth";
 import { fetchStudents } from "../services/studentService";
+import mapboxgl from "mapbox-gl";
 
 const host = process.env.NEXT_PUBLIC_API_HOST;
 const port = process.env.NEXT_PUBLIC_API_PORT;
@@ -14,11 +14,12 @@ const apiBaseUrl = `${host}:${port}`;
 
 const addStudent = ({ isOpenAddStudent, onCloseAddStudent, onAddStudent }) => {
     if (!isOpenAddStudent) return null;
-
+    const [latitude, setLatitude] = useState("");
+    const [longitude, setLongitude] = useState("");
+    const [map, setMap] = useState(null);
+    const mapContainer = useRef(null); // ใช้สำหรับเก็บ ref ของ container สำหรับแผนที่
     const [error, setError] = useState(null);
-    const [students, setStudents] = useState([]);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [totalCount, setTotalCount] = useState(0);
+
 
     const [formData, setFormData] = useState({
         first_name: "",
@@ -30,15 +31,62 @@ const addStudent = ({ isOpenAddStudent, onCloseAddStudent, onAddStudent }) => {
         longitude: "",
         status: "",
     });
+    const [showMap, setShowMap] = useState(false);
+
+    useEffect(() => {
+        if (showMap && mapContainer.current) {
+
+            // ตั้งค่า Mapbox เมื่อ component mount
+            mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;// ใส่ Mapbox Access Token ที่คุณได้รับ
+            const mapInstance = new mapboxgl.Map({
+                container: mapContainer.current, // ref ของ container
+                style: 'mapbox://styles/mapbox/outdoors-v12', // เลือกสไตล์แผนที่
+                center: [0, 0], // ตั้งค่าตำแหน่งเริ่มต้น
+                zoom: 2, // ตั้งค่าระดับการซูม
+            });
+
+            // สร้าง marker ที่สามารถลากได้
+            const marker = new mapboxgl.Marker({ draggable: true })
+                .setLngLat([0, 0]) // ตั้งค่าเริ่มต้นที่ตำแหน่ง (Longitude, Latitude)
+                .addTo(mapInstance);
+
+            // เมื่อ marker ถูกลาก, จะอัพเดทค่าพิกัดในฟอร์ม
+            marker.on('dragend', () => {
+                const lngLat = marker.getLngLat();
+                handleInputChange({ target: { name: "latitude", value: lngLat.lat.toFixed(8) } }, true);
+                handleInputChange({ target: { name: "longitude", value: lngLat.lng.toFixed(8) } }, true);
+            });
+
+            setMap(mapInstance);
+
+            // Clean up เมื่อ component ถูก unmount
+            return () => mapInstance.remove();
+        }
+    }, [showMap]);
 
 
-    const handleInputChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+    const handleInputChange = (e, isFromMap = false) => {
+        let { name, value } = e.target || {}; // ตรวจสอบว่า e.target มีค่าหรือไม่
+
+        // ถ้ามาจากแผนที่ -> แปลงเป็นตัวเลข และจำกัดทศนิยม
+        if (isFromMap) {
+            value = parseFloat(value).toFixed(8);
+        }
+
+        setFormData((prevData) => ({
+            ...prevData,
+            [name]: value,
+        }));
     };
+
 
     //insert data student
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        console.log(formData.latitude + '/' + formData.longitude);
+        console.log(parseFloat(formData.latitude).toFixed(8) + '//' + parseFloat(formData.longitude).toFixed(8));
+
 
         try {
             const auth = getAuth();
@@ -61,10 +109,11 @@ const addStudent = ({ isOpenAddStudent, onCloseAddStudent, onAddStudent }) => {
                     age: formData.age,
                     gender: formData.gender,
                     address: formData.address,
-                    latitude: formData.latitude,
-                    longitude: formData.longitude,
+                    latitude: formData.latitude ? parseFloat(formData.latitude).toFixed(8) : null,
+                    longitude: formData.longitude ? parseFloat(formData.longitude).toFixed(8) : null,
                     status: formData.status,
                 }),
+
             });
             if (!response.ok) {
                 throw new Error('Failed to submit the data. Please try again.')
@@ -104,7 +153,7 @@ const addStudent = ({ isOpenAddStudent, onCloseAddStudent, onAddStudent }) => {
                     </Link>
                     <div className="py-8 px-10">
                         <h2 className={style.title}>
-                            Add New Student
+                            Add Student
                         </h2>
                         <div className={style.p}>
                             Fill out the form below to add a new student to the system.
@@ -205,49 +254,72 @@ const addStudent = ({ isOpenAddStudent, onCloseAddStudent, onAddStudent }) => {
                                 required
                             >
                                 <option value="">Select status</option>
-                                <option value="0">0</option>
-                                <option value="1">1</option>
+                                <option value="0">Canceled</option>
+                                <option value="1">Confirmed</option>
                             </select>
                         </div>
 
                         <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
-                            <label htmlFor="Latitude" >
-                                Latitude
-                            </label>
+                            <label htmlFor="Latitude">Latitude</label>
                             <div className={style.input_placeholder_email}>
                                 <input
                                     type="text"
                                     id="Latitude"
                                     name="latitude"
+                                    onClick={() => setShowMap(true)}
+                                    value={formData.latitude || ""}
                                     onChange={handleInputChange}
+                                    readOnly
                                     className={style.input_email}
                                     required
                                 />
                             </div>
                         </div>
 
+
                         <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
-                            <label htmlFor="Longitude" >
-                                Longitude
-                            </label>
+                            <label htmlFor="Longitude">Longitude</label>
                             <div className={style.input_placeholder_email}>
                                 <input
                                     type="text"
                                     id="Longitude"
                                     name="longitude"
+                                    value={formData.longitude || ""}
                                     onChange={handleInputChange}
+                                    readOnly
                                     className={style.input_email}
                                     required
                                 />
                             </div>
                         </div>
+                        {/* <div
+                            ref={mapContainer}
+                            style={{ width: "500px", height: "200px", border: "1px solid #ccc" }}
+                        ></div> */}
+
+                        {showMap && (
+                            <div className={` ${style.modal_overlay} `}>
+                                <div className={`${style.modal_content} overflow-x-auto`}>
+                                    <button onClick={() => setShowMap(false)} type="button" className="bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                                        </svg>
+                                        <span className="sr-only">Close modal</span>
+                                    </button>
+                                    <div
+                                        ref={mapContainer}
+                                        style={{ width: "100%", height: "200px", marginTop: "10px" }}
+                                    ></div>
+                                </div>
+                            </div>
+                        )}
 
                         <div className="col-span-6 justify-end sm:flex sm:items-center sm:gap-4">
                             <button
                                 type="submit"
                                 className={style.btn_add}
                             >
-                                Submit
+                                Add Student
                             </button>
                         </div>
                     </form>

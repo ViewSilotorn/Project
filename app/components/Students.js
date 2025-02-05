@@ -231,8 +231,8 @@ export default function StudentSidebar({ isOpen, onClose }) {
       return;
     }
 
-    // const confirmDelete = confirm("Are you sure you want to delete selected items?");
-    // if (!confirmDelete) return;
+    const confirmDelete = confirm("Are you sure you want to delete selected items?");
+    if (!confirmDelete) return;
 
     try {
       console.log("Starting delete for ID:", selectedRows);

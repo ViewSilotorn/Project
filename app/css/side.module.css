@@ -213,3 +213,26 @@
 .select:focus {
     border: 2px solid #007BFF;
 }
+
+.modal_overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    /* พื้นหลังมืด */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+}
+
+.modal_content {
+    background-color: white;
+    padding: 10px;
+    border-radius: 8px;
+    text-align: right;
+    max-width: 400px;
+    width: 100%;
+}

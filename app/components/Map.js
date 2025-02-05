@@ -164,8 +164,6 @@ const Map = forwardRef((props, ref) => {
 
 
 
-
-
   // ฟังก์ชันสำหรับการสร้างแผนที่
   const initializeMap = (mapCenter) => {
     const map = new mapboxgl.Map({
@@ -485,11 +483,13 @@ const Map = forwardRef((props, ref) => {
       .setLngLat([lng, lat])
       .addTo(map);
 
-    const radius = 1;
+    // const radius = 1;
+    const radius = radiusValues.length > 0 ? radiusValues[radiusValues.length - 1] : 1;
 
     drawCircle([lng, lat], radius, map, circleId);
 
     marker.on("dragend", () => {
+      
       const newLngLat = marker.getLngLat();
 
       drawCircle([newLngLat.lng, newLngLat.lat], radius, map, circleId);
@@ -506,7 +506,7 @@ const Map = forwardRef((props, ref) => {
     // เพิ่มหมุดใหม่ใน state
     setMapElements((prev) => [
       ...prev,
-      { marker, circleId, map, lng, lat },
+      { marker, circleId, map, lng, lat , radius },
     ]);
 
     setAddCircleClick(false);
@@ -626,8 +626,7 @@ const Map = forwardRef((props, ref) => {
       props.onMapElementsUpdate([]); // แจ้ง Parent Component ว่าไม่มีข้อมูลแล้ว
     }
   };
-
-
+  
 
 
 

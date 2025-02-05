@@ -63,7 +63,7 @@ export default function BusToSchoolSidebar({ isOpen, onClose, mapRef, mapElement
     setRadiusValues([...radiusValues, 1]);
 
     // รอให้ผู้ใช้คลิกแผนที่และอัปเดตข้อมูล
-    addInput();
+    await addInput();
     setIsButtonDisabled(false); // เปิดปุ่มอีกครั้งเมื่อ addInput เสร็จ
   };
 
@@ -122,7 +122,7 @@ export default function BusToSchoolSidebar({ isOpen, onClose, mapRef, mapElement
     setFields(updatedFields);
   };
 
-  const [value, setValue] = useState(0);
+  // const [value, setValue] = useState(0);
 
   // const handleInputChange = (e) => {
   //   const inputValue = e.target.value;
@@ -178,6 +178,7 @@ export default function BusToSchoolSidebar({ isOpen, onClose, mapRef, mapElement
   const handleChangeRadius = (idx, value) => {
     if (/^\d*\.?\d{0,1}$/.test(value)) {
       const updatedRadius = [...radiusValues];
+      
       updatedRadius[idx] = value; // อัปเดตค่า radius ของ field นั้น
       setRadiusValues(updatedRadius);
 
@@ -190,6 +191,17 @@ export default function BusToSchoolSidebar({ isOpen, onClose, mapRef, mapElement
     }
   };
 
+  // const toClose = () => {
+  //   setFields([]); // ลบ input ทั้งหมด
+  //   setShowFields(false); // ซ่อน input และปุ่ม Clear
+  //   if (mapRef.current) {
+  //     mapRef.current.clearAllElements()
+  //   }
+  //   setRadiusValues([])
+  //   setIsButtonDisabled(false)
+  //   onClose()
+  // }
+  
   const [dateTime, setDateTime] = useState(null);
   useEffect(() => {
     setDateTime(new Date());
@@ -375,7 +387,7 @@ export default function BusToSchoolSidebar({ isOpen, onClose, mapRef, mapElement
                       type="text"
                       value={
                         elements[idx]
-                          ? `Lng: ${elements[idx].lng.toFixed(8)}, Lat: ${elements[idx].lat.toFixed(8)}`
+                          ? `${elements[idx].lng.toFixed(8)}, ${elements[idx].lat.toFixed(8)}`
                           : val
                       }
                       onChange={(e) => handleChange(idx, e.target.value)}
@@ -396,14 +408,18 @@ export default function BusToSchoolSidebar({ isOpen, onClose, mapRef, mapElement
                       fill="none" viewBox="0 0 24 24"
                       strokeWidth={1.5}
                       stroke="currentColor"
-                      className="hiiden absolute top-1/2 right-1 w-5 h-5 text-red-600 transform -translate-y-1/2 cursor-pointer hover:text-red-600"
+                      className="hiiden absolute top-1/2 right-1 w-5 h-5 text-red-600  -translate-y-1/2 cursor-pointer hover:text-red-600"
                       onClick={() => removeInput(idx)}
                     >
                       <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                     </svg>
                     <input
                       type="number"
-                      className={`${styles.input_km} ml-5`}
+                      min="0.0"
+                      step="0.1"
+                      value={radiusValues[idx] || ""} 
+                      className={`${styles.input_km} ml-3`}
+                      onChange={(e) => handleChangeRadius(idx, e.target.value)}
                     />
                     <span className={styles.text_km}>Km.</span>
                   </div>
@@ -425,6 +441,15 @@ export default function BusToSchoolSidebar({ isOpen, onClose, mapRef, mapElement
                 </div>
               </button>
             </div>
+          </div>
+        </div>
+        <div className="mt-auto sticky bottom-0 flex justify-center bg-[#f9f9f9] border-t border-gray-300 w-full">
+          <div className="bg-white w-screen py-3">
+            <button
+              className={`${styles.btn_route} mx-auto block bg-blue-500 hover:bg-blue-600 rounded px-4 py-2`}
+            >
+              Optimize Routes
+            </button>
           </div>
         </div>
       </div>
