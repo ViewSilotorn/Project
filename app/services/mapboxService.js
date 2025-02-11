@@ -63,7 +63,7 @@ const resetRoute = (map) => {
 
 //       const chunk = coordinates.slice(i, i + maxPoints);
 //       // console.log("F' mamSer chunk--> "+ chunk);
-      
+
 
 //       // // ถ้า chunk ไม่มีข้อมูล ให้ข้ามไปยังรอบถัดไป
 //       // if (!chunk || chunk.length === 0) {
@@ -204,7 +204,7 @@ const resetRoute = (map) => {
 //     console.error("Error fetching route:", error);
 //   }
 // };
-  
+
 
 // const fetchMarkers = async (idToken) => {
 //     try {
@@ -259,7 +259,7 @@ const drawRoute = async (map, coordinates, routeId, color, isAllRoute) => {
         .map(coord => `${coord[1]},${coord[0]}`)
         .join(";");
 
-      console.log("F' mamSer coordinateString--> "+{i}+" "+ coordinateString);
+      console.log("F' mamSer coordinateString--> " + { i } + " " + coordinateString);
 
       try {
         // เรียก Directions API สำหรับแต่ละกลุ่ม
@@ -279,7 +279,7 @@ const drawRoute = async (map, coordinates, routeId, color, isAllRoute) => {
 
 
           console.log("----------------------------------------");
-          console.log("F' mapSer "+routeId);
+          console.log("F' mapSer " + routeId);
 
           console.log("Total Distance before initialization:", totalDistance);
           console.log("Total Duration before initialization:", totalDuration);
@@ -370,7 +370,7 @@ const drawRoute = async (map, coordinates, routeId, color, isAllRoute) => {
       duration: durationInMin, // ระยะเวลาเป็นนาที
     };
     console.log("#########################################");
-    console.log("OUT mapSer!!!"); 
+    console.log("OUT mapSer!!!");
     console.log(result);
     console.log("#########################################");
 
@@ -379,65 +379,93 @@ const drawRoute = async (map, coordinates, routeId, color, isAllRoute) => {
     console.error("Error fetching route:", error);
   }
 };
-  
+
 
 
 // ----------------------------------------------------------------------------------------------------------
 
 const fetchMarkers = async (idToken) => {
-    try {
-        const response = await fetch(`${configService.baseURL}/api/students`, {
-            headers: {
-                'Authorization': `Bearer ${idToken}`, // ส่ง token ใน headers
-                'Content-Type': 'application/json',
-            },
-        });
+  try {
+    const response = await fetch(`${configService.baseURL}/api/students`, {
+      headers: {
+        'Authorization': `Bearer ${idToken}`, // ส่ง token ใน headers
+        'Content-Type': 'application/json',
+      },
+    });
 
-        if (response.ok) {
-            const data = await response.json();
-            return data;
-        } else {
-            throw new Error(`Failed to fetch data from API: ${response.status}`);
-        }
-    } catch (error) {
-        console.error("Error fetching marker data: ", error);
-        throw error;
+    if (response.ok) {
+      const data = await response.json();
+      return data;
+    } else {
+      throw new Error(`Failed to fetch data from API: ${response.status}`);
     }
+  } catch (error) {
+    console.error("Error fetching marker data: ", error);
+    throw error;
+  }
 };
 
 
 const fetchRoutes = async (idToken, map, data) => {
-    // console.log("Fetching Trips and Drawing Routes...");
-    try {
-      const response = await fetch(`${configService.orToolURL}/vrp/solve_vrp`, {
-        method: 'POST', // ใช้ POST method
-        headers: {
-          'Authorization': `Bearer ${idToken}`,
-          'Content-Type': 'application/json', // Content-Type เป็น JSON
-        },
-        body: JSON.stringify(data), // ส่ง data ใน body
-      });
-  
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-  
-      const result = await response.json();
-  
-      // ตรวจสอบว่ามีข้อมูล trips หรือไม่
-      if (result && result.trips) {
-        // console.log("Trips found:", result.trips);
-        return result.trips;
-      } else {
-        console.warn("No trips found in API response");
-        return [];
-      }
-    } catch (error) {
-      console.error("Error fetching trips from API:", error);
+  console.log("Fetching Trips and Drawing Routes... $$$$$");
+  try {
+    const response = await fetch(`${configService.orToolURL}/solve`, {
+      method: 'POST', // ใช้ POST method
+      headers: {
+        'Content-Type': 'application/json', // Content-Type เป็น JSON
+      },
+      body: JSON.stringify(data), // ส่ง data ใน body
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const result = await response.json();
+
+    // ตรวจสอบว่ามีข้อมูล trips หรือไม่
+    if (result && result.trips) {
+
+      // console.log("Trips found:", result.trips);
+      return result.trips;
+    } else {
+      console.warn("No trips found in API response");
       return [];
     }
-  };
+  } catch (error) {
+    console.error("Error fetching trips from API:", error);
+    return [];
+  }
+};
 
+
+const fetchRouteByTripId = async (idToken, trip_id) => {
+  if (!idToken) {
+    console.error("ID token is required to fetch trips");
+    return [];
+  }
+
+  try {
+    const response = await fetch(`${configService.baseURL}/api/routes/trip/${trip_id}`, {
+      headers: {
+        Authorization: `Bearer ${idToken}`, // Send token in headers
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      // console.log("Trips found:", result.trips);
+      return result.trips;
+    } else {
+      console.error(`Failed to fetch trips: ${response.status} ${response.statusText}`);
+      return [];
+    }
+  } catch (error) {
+    console.error("Error fetching trips:", error);
+    return [];
+  }
+};
 // ฟังก์ชันสำหรับสุ่มสีแบบ Hex
 // function getRandomHexColor() {
 //     const letters = '0123456789ABCDEF';
@@ -454,10 +482,10 @@ function getRandomHexColor() {
   const r = getRandomValue(); // สีแดง
   const g = getRandomValue(); // สีเขียว
   const b = getRandomValue(); // สีน้ำเงิน
-  
+
   const color = `#${r}${g}${b}`;
   return color;
 }
 
-export {drawRoute, getRandomHexColor, fetchMarkers, resetRoute, fetchRoutes}
+export { drawRoute, getRandomHexColor, fetchMarkers, resetRoute, fetchRoutes, fetchRouteByTripId }
 

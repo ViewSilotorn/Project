@@ -2,14 +2,28 @@
 import styles from '../css/route.module.css';
 import ModalDelete from "../modals/ModalDelete";
 import { useEffect, useState } from "react";
-import { fetchTrips } from '../services/tripService';
+import { fetchTrips, deleteTripService } from '../services/tripService';
+import { subscribeAuthState } from "../services/authService";
+import { findingRouteByTripId } from "../services/mapboxService"
+import FindingOverlay from '../modals/FindingOverlay'
+import Swal from 'sweetalert2';
+import showAlert from '../modals/ShowAlert';
 
-export default function HistoryRouteSidebar({ isOpen, onClose }) {
+export default function HistoryRouteSidebar({ isOpen, onClose, openComponent, mapRef }) {
   if (!isOpen) return null; // ถ้า Sidebar ไม่เปิด ให้คืนค่า null
 
   // const [currentPage, setCurrentPage] = useState('History Routes');
-
+  const [user, setUser] = useState(null);
+  const [idToken, setIdToken] = useState("");
+  const [routes, setRoutes] = useState([]);
   const [isModalDeleteOpen, setIsModalDeleteOpen] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = subscribeAuthState(setUser, setIdToken); // เรียกใช้ service
+    return () => unsubscribe(); // เมื่อ component ถูกลบออก, ยกเลิกการ subscribe
+  }, []); // ใช้ [] เพื่อให้เพียงแค่ครั้งแรกที่ mount
+
   //open modal Delete Student
   const openModalDelete = () => {
     // setSelectedUserId(id);
@@ -21,157 +35,87 @@ export default function HistoryRouteSidebar({ isOpen, onClose }) {
     // setSelectedUserId(null);
   };
 
-  const confirmDelete = async () => {
-    if (selectedUserId !== null) {
-      await HandleDelete(selectedUserId);
-      setStudents((prevStudents) => prevStudents.filter((student) => student.id !== selectedUserId));
+  const fetchTripsAgain = async () => {
+    setIsLoadingData(true);
+    try {
+      if (idToken) {
+        const data = await fetchTrips(idToken);
+        setRoutes(data);
+        console.log("Updated Trips:", data);
+      }
+    } catch (error) {
+      console.error("Error fetching trips:", error);
+    } finally {
+      setIsLoadingData(false);
+    }
+  }
+
+  const confirmDelete = async (tripId) => {
+    try {
+      await deleteTripService(idToken, tripId);
+
+      // Swal.fire({
+      //   title: "Deleted!",
+      //   text: "Selected data has been deleted successfully.",
+      //   icon: "success",
+      //   timer: 2000, // ปิดอัตโนมัติใน 2 วินาที
+      //   showConfirmButton: false, // ไม่ต้องกดปุ่ม OK
+      // });
+      showAlert("Deleted success!")
       closeModalDelete();
+      await fetchTripsAgain();
+    } catch (error) {
+      console.error("Error deleting trip:", error);
+      alert("Failed to delete trip! Check the console for more details.");
+    }
+
+  };
+
+
+  useEffect(() => {
+    //functionดึงข้อมูลจากAPI
+    const fetchData = async () => {
+      try {
+        const data = await fetchTrips();
+        console.log('Loaded Trips:', data); // ตรวจสอบข้อมูล
+        setRoutes(data); // ตั้งค่า state
+      } catch (error) {
+        console.error('Error:', error.message);
+        setError(error.message);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const [isLoading, setIsLoading] = useState();
+  const typePage = "history"
+
+  const findingRouteByTripId = async (trips_id) => {
+    try {
+      setIsLoading(true); // เริ่มโหลด
+
+      if (mapRef.current) {
+        const { routes, routeColors, routeDistance, routeDuration, Didu } = await mapRef.current.handleSubmit(
+          0,
+          0,
+          0,
+          true,
+          "his",
+          trips_id
+        );
+        // openComponent("Route");
+        openComponent("Route", { routes, routeColors, routeDistance, routeDuration, Didu, typePage });
+      }
+
+    } catch (error) {
+      console.error("Error in findingRoute:", error);
+    } finally {
+      setIsLoading(false); // สิ้นสุดโหลด
     }
   };
 
-  // const [routes, setRoutes] = useState([]);
-  // Data for the history routes
-  const routes = [
-    {
-      date: "Jan 13, 2025",
-      students: 140,
-      type: "Home To Schools",
-      typeColor: "text-green-600",
-    },
-    {
-      date: "Jan 9, 2025",
-      students: 139,
-      type: "Bus To Schools",
-      typeColor: "text-red-600",
-    },
-    {
-      date: "Jan 1, 2025",
-      students: 120,
-      type: "Home To Schools",
-      typeColor: "text-yellow-600",
-    },
-    {
-      date: "Jan 13, 2025",
-      students: 140,
-      type: "Home To Schools",
-      typeColor: "text-green-600",
-    },
-    {
-      date: "Jan 9, 2025",
-      students: 139,
-      type: "Bus To Schools",
-      typeColor: "text-red-600",
-    },
-    {
-      date: "Jan 1, 2025",
-      students: 120,
-      type: "Home To Schools",
-      typeColor: "text-yellow-600",
-    },
-    // Add more items here for testing scroll
-    {
-      date: "Feb 5, 2025",
-      students: 150,
-      type: "Home To Schools",
-      typeColor: "text-green-600",
-    },
-    {
-      date: "Feb 6, 2025",
-      students: 130,
-      type: "Bus To Schools",
-      typeColor: "text-red-600",
-    },
-    {
-      date: "Feb 7, 2025",
-      students: 125,
-      type: "Home To Schools",
-      typeColor: "text-yellow-600",
-    },
-    {
-      date: "Jan 13, 2025",
-      students: 140,
-      type: "Home To Schools",
-      typeColor: "text-green-600",
-    },
-    {
-      date: "Jan 9, 2025",
-      students: 139,
-      type: "Bus To Schools",
-      typeColor: "text-red-600",
-    },
-    {
-      date: "Jan 1, 2025",
-      students: 120,
-      type: "Home To Schools",
-      typeColor: "text-yellow-600",
-    },
-    {
-      date: "Jan 13, 2025",
-      students: 140,
-      type: "Home To Schools",
-      typeColor: "text-green-600",
-    },
-    {
-      date: "Jan 9, 2025",
-      students: 139,
-      type: "Bus To Schools",
-      typeColor: "text-red-600",
-    },
-    {
-      date: "Jan 1, 2025",
-      students: 120,
-      type: "Home To Schools",
-      typeColor: "text-yellow-600",
-    },
-    // Add more items here for testing scroll
-    {
-      date: "Feb 5, 2025",
-      students: 150,
-      type: "Home To Schools",
-      typeColor: "text-green-600",
-    },
-    {
-      date: "Feb 6, 2025",
-      students: 130,
-      type: "Bus To Schools",
-      typeColor: "text-red-600",
-    },
-    {
-      date: "Feb 7, 2025",
-      students: 125,
-      type: "Home To Schools",
-      typeColor: "text-yellow-600",
-    },
-  ];
 
-  const Data = [
-    { id: 1, name: "John Doe", address: "123 Main St, Springfield" },
-    { id: 2, name: "Jane Smith", address: "456 Elm St, Rivertown" },
-    { id: 3, name: "Alice Johnson", address: "789 Oak Ave, Lakeview" },
-    { id: 4, name: "Bob Brown", address: "321 Maple St, Cedarville" },
-    { id: 5, name: "Carol White", address: "654 Pine Rd, Greenwood" },
-    { id: 6, name: "David Black", address: "987 Birch Ln, Oakwood" },
-    { id: 7, name: "Emma Green", address: "111 Ash Ct, Willowtown" },
-    { id: 8, name: "Frank Gray", address: "222 Cherry Dr, Riverbend" },
-    { id: 9, name: "Grace Blue", address: "333 Walnut St, Meadowlake" },
-    { id: 10, name: "Henry Yellow", address: "444 Poplar Ave, Sunnyvale" },
-  ]
-
-  // useEffect(() => {
-  //   //functionดึงข้อมูลจากAPI
-  //   const fetchData = async () => {
-  //     try {
-  //       const data = await fetchTrips();
-  //       console.log('Loaded Trips:', data); // ตรวจสอบข้อมูล
-  //       setRoutes(data); // ตั้งค่า state
-  //     } catch (error) {
-  //       console.error('Error:', error.message);
-  //       setError(error.message);
-  //     }
-  //   };
-
-  //   fetchData();
-  // }, []);
 
   return (
     <aside
@@ -221,7 +165,7 @@ export default function HistoryRouteSidebar({ isOpen, onClose }) {
                       {route.type}
                     </span>
                   </p>
-                  <a
+                  <aa
                     href="#"
                     className="font-medium text-indigo-600 hover:text-indigo-500"
                   >
@@ -232,35 +176,46 @@ export default function HistoryRouteSidebar({ isOpen, onClose }) {
             </li>
           ))} */}
         {routes.map((route, index) => (
-          <div key={index} className={`${styles.card} flex w-full my-1 p-4 max-w-lg flex-col rounded-lg bg-white shadow-sm hover:bg-gray-100`}>
+          <div key={index} onClick={() => findingRouteByTripId(route.id)} className={`${styles.card} flex w-full my-1 p-4 max-w-lg flex-col rounded-lg bg-white shadow-sm hover:bg-gray-100`}>
             <div className="">
-              <div className="flex items-center justify-between">
-                <h3 className={styles.date}>
-                  {route.date}
-                </h3>
-                <p className={`${styles.student} mt-1 max-w-2xl`}>
-                  Students: {route.students}
-                </p>
+              <div className="mt-1 flex items-center justify-between">
+                <h3 className={styles.text_school}>{route.school}</h3>
               </div>
-              <div className="mt-4 flex items-center justify-between">
-                <p className={styles.type}>
-                  Type:{" "}
-                  <span >
-                    {route.type}
-                  </span>
-                </p>
+              <div className="mt-2 flex items-center justify-between">
+                <h3 className={styles.date}>
+                  {new Intl.DateTimeFormat('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true,
+                  }).format(new Date(route.dataTime))}
+                </h3>
+                {/* <p className={`${styles.student} mt-1 max-w-2xl`}>
+                  Students: {route.students}
+                </p> */}
                 <a
                   className={styles.delete}
-                  onClick={() => openModalDelete()}
+                  onClick={() => openModalDelete(route.id)}
                 >
                   delete
                 </a>
               </div>
+              <div className="mt-2 flex items-center justify-between">
+                <p className={styles.type}>
+                  Type:{" "}
+                  <span >
+                    {route.types}
+                  </span>
+                </p>
+              </div>
             </div>
+            <ModalDelete isOpen={isModalDeleteOpen} onClose={closeModalDelete} type='deleteHistory' onConfirm={() => confirmDelete(route.id)}></ModalDelete>
           </div>
         ))}
-        <ModalDelete isOpen={isModalDeleteOpen} onClose={closeModalDelete} onConfirm={confirmDelete}></ModalDelete>
       </div>
+      {isLoading && <FindingOverlay />}
     </aside>
   );
 }

@@ -21,6 +21,9 @@ import Logo from '../../Image/Logo.png'
 // Modals
 import PasswordResetModal from "../../modals/PasswordResetModal"; // นำเข้า Component ใหม่
 import Modal from "../../modals/Modal";
+import ListStudent from "../../modals/ListStudentModal"
+import ImportRoute from "@/app/modals/ImportRoute";
+import showAlert from "@/app/modals/ShowAlert";
 
 
 
@@ -49,6 +52,9 @@ export default function Sidebar() {
         setIsModalOpen(true);
     }
 
+    const [openImportRoute, setopenImportRoute] = useState(false);
+    const openImportRouteModal = () => setopenImportRoute(true);//open modal Import Student
+    const closeImportRouteModal = () => setopenImportRoute(false);
 
 
     // const [mapElements, setMapElements] = useState([]); // State สำหรับเก็บหมุด
@@ -116,7 +122,7 @@ export default function Sidebar() {
             case "ButToSchools":
                 return <ButToSchools mapRef={mapRef} mapElements={mapElements} {...commonProps} onRadiusValuesChange={handleRadiusValuesChange} />;
             case "HistoryRoute":
-                return <HistoryRoute {...commonProps} />;
+                return <HistoryRoute mapRef={mapRef} {...commonProps} />;
             case "Student":
                 return <Student {...commonProps} />;
             case "School":
@@ -126,7 +132,7 @@ export default function Sidebar() {
             case "DetailRoute":
                 return <DetailRoute {...commonProps} />;
             case "School":
-                return <SchoolsPage {...commonProps} />;
+                return <SchoolsPage mapRef={mapRef} {...commonProps} />;
             default:
                 return null;
         }
@@ -180,7 +186,8 @@ export default function Sidebar() {
         try {
             await sendPasswordResetEmail(auth, emailForPasswordReset);
             // alert("Password reset email sent! Please check your inbox.");
-            openModal(true)
+            // openModal(true)
+            showAlert('Reset successfully!')
             setShowPopupReset(false); // Close the modal after sending the reset email
         } catch (error) {
             alert("Error sending password reset email: " + error.message);
@@ -374,6 +381,27 @@ export default function Sidebar() {
                                         {/* <span className="inline-flex items-center justify-center px-2 ms-3 text-sm font-medium text-gray-800 bg-gray-100 rounded-full dark:bg-gray-700 dark:text-gray-300">
                         Pro
                         </span> */}
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a
+                                        // onClick={() => { setIsImportRouteModalOpen(true); setIsOpen(!isOpen); }}
+                                        onClick={() => { setopenImportRoute(true); setIsOpen(!isOpen); }}
+                                        className={`cursor-pointer flex items-center p-2 rounded-lg
+                                                    text-gray-900 dark:text-white
+                                                    hover:bg-gray-100 dark:hover:bg-gray-700
+                                                    group
+                                                    ${activeLink === "school"
+                                                ? "bg-gray-100 dark:bg-gray-700"
+                                                : ""
+                                            }
+                                        `}
+                                    >
+                                        {/* <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" className="size-4">
+                      <path fill="currentColor" d="M416 320h-96c-17.6 0-32-14.4-32-32s14.4-32 32-32h96s96-107 96-160s-43-96-96-96s-96 43-96 96c0 25.5 22.2 63.4 45.3 96H320c-52.9 0-96 43.1-96 96s43.1 96 96 96h96c17.6 0 32 14.4 32 32s-14.4 32-32 32H185.5c-16 24.8-33.8 47.7-47.3 64H416c52.9 0 96-43.1 96-96s-43.1-96-96-96zm0-256c17.7 0 32 14.3 32 32s-14.3 32-32 32s-32-14.3-32-32s14.3-32 32-32zM96 256c-53 0-96 43-96 96s96 160 96 160s96-107 96-160s-43-96-96-96zm0 128c-17.7 0-32-14.3-32-32s14.3-32 32-32s32 14.3 32 32s-14.3 32-32 32z" />
+                    </svg> */}
+                                        <span className="flex-1 ms-3 whitespace-nowrap">Import Routes</span>
                                     </a>
                                 </li>
 
@@ -582,10 +610,10 @@ export default function Sidebar() {
                 handlePasswordResetRequest={handlePasswordResetRequest}
                 closeModal={() => setShowPopupReset(false)}
             />
-            <Modal isOpen={isModalOpen} onClose={closeModal}>
-            </Modal>
-
-
+            {/* <Modal isOpen={isModalOpen} onClose={closeModal}>
+            </Modal> */}
+            {/* <ListStudent isOpenListStudent={openListStudent} onCloseListStudent={closeListStudentModal}></ListStudent> */}
+            <ImportRoute mapRef={mapRef} {...commonProps} isOpenImportRoute={openImportRoute} onCloseImportRoute={closeImportRouteModal}></ImportRoute>
         </>
     );
 }

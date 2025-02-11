@@ -5,7 +5,7 @@ import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 
 
-import { drawRoute, fetchMarkers, resetRoute, fetchRoutes, getRandomHexColor } from "../services/mapboxService";
+import { drawRoute, fetchMarkers, resetRoute, fetchRoutes, getRandomHexColor , fetchRouteByTripId} from "../services/mapboxService";
 import { fetchMapCenter } from "../services/schoolService";
 import { subscribeAuthState } from "../services/authService";
 
@@ -483,8 +483,8 @@ const Map = forwardRef((props, ref) => {
       .setLngLat([lng, lat])
       .addTo(map);
 
-    // const radius = 1;
-    const radius = radiusValues.length > 0 ? radiusValues[radiusValues.length - 1] : 1;
+    const radius = 1;
+    // const radius = radiusValues.length > 0 ? radiusValues[radiusValues.length - 1] : 1;
 
     drawCircle([lng, lat], radius, map, circleId);
 
@@ -506,7 +506,7 @@ const Map = forwardRef((props, ref) => {
     // เพิ่มหมุดใหม่ใน state
     setMapElements((prev) => [
       ...prev,
-      { marker, circleId, map, lng, lat , radius },
+      { marker, circleId, map, lng, lat},
     ]);
 
     setAddCircleClick(false);
@@ -655,7 +655,7 @@ const Map = forwardRef((props, ref) => {
 
   const distance = [];
 
-  const handleSubmit = async (num_bus, max_stops, max_time, type) => {
+  const handleSubmit = async (num_bus, max_stops, max_time, type, findBy, trip_id, roteImport) => {
     const locations = markers.map((marker) => [parseFloat(marker.latitude), parseFloat(marker.longitude)]);
     const data = {
       depot: [parseFloat(depotLat), parseFloat(depotLng)],
@@ -673,35 +673,40 @@ const Map = forwardRef((props, ref) => {
     setIsLoading(true); // เริ่มโหลด
 
     try {
+
+      let result = []
+      let colors = []
+
       // เรียก fetchRoutes เพื่อคำนวณเส้นทาง
-      const result = await fetchRoutes(idToken, mapRef.current, data);
+      if(findBy === "home"){
+        result = await fetchRoutes(idToken, mapRef.current, data);
+        // setRoutes(result);
+        console.log("route ที่ได้ "+ result);
+       
+        colors = result.map(() => getRandomHexColor());
+        // setRouteColors(colors);
+      }else if(findBy === "his"){
+        result = await fetchRouteByTripId(idToken, trip_id);
 
-      // สร้างสีสำหรับแต่ละเส้นทาง
-      const colors = result.map(() => getRandomHexColor());
+        console.log("HIS "+ result);
 
-      // console.log("Add "+colors);
+        // colors = result.map(() => getRandomHexColor());
+        colors = result.map(route => route.color);
+        console.log("this color"+colors);
+        
+      }else if(findBy === "import"){
+        result = roteImport;
 
-      setRouteColors(colors);
-      setRoutes(result);
+        console.log("import "+ result);
+        
+    
+        colors = result.map(route => route.color);
+        console.log("this color"+colors);
+        
+      }else {
 
-      // // วาดเส้นทางบนแผนที่
-      // result.forEach((route, index) => {
-      //   const routeKey = `route ${index + 1}`;
-      //   const coordinates = route[routeKey];
-      //   if (coordinates) {
-      //     drawRoute(mapRef.current, coordinates, routeKey, colors[index], true)
-      //       .then((didu) => {
-      //         setdisdu(didu.distance)
-      //         console.log("----> " + didu.distance);
-      //         console.log("----> " + didu.duration);
-      //       })
-      //       .catch((error) => {
-      //         console.error("Error drawing route:", error);
-      //       });
-      //   }
-      // });
-      // // ส่งกลับ routes และ routeColors
-      // return { routes: result, routeColors: colors };
+      }
+      
 
       const distance = [];
       const duration = [];
@@ -723,12 +728,15 @@ const Map = forwardRef((props, ref) => {
             console.error("Error drawing route:", error);
           }
         }
-        // return Promise.resolve(); // Return a resolved Promise if coordinates are missing
         return null;
       });
 
       // Wait for all Promises to complete
       const diduArray = await Promise.all(drawPromises);
+
+
+      console.log("this route Befor send: "+ result);
+      
 
       return { routes: result, routeColors: colors, routeDistance: distance, routeDuration: duration, Didu: JSON.stringify(diduArray, null, 2) };
 
@@ -739,7 +747,6 @@ const Map = forwardRef((props, ref) => {
       setIsLoading(false); // สิ้นสุดการโหลด
     }
   };
-
 
 
 
@@ -793,7 +800,6 @@ const Map = forwardRef((props, ref) => {
         {AddCircleClick ? "Choose a location ... " : " "}
       </p>
 
-
       <ul className="absolute right-0 bottom-0">
         {mapElements.map((el, idx) => (
           <li key={el.circleId}>
@@ -801,8 +807,6 @@ const Map = forwardRef((props, ref) => {
           </li>
         ))}
       </ul>
-
-
 
     </div>
   );

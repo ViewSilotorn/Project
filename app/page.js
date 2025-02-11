@@ -27,6 +27,7 @@ export default function Home() {
   const [isResetModalOpen, setIsResetModalOpen] = useState(false); // สำหรับควบคุมการแสดง Modal
   const [showPassword, setShowPassword] = useState(false);
   const [idToken, setIdToken] = useState(null);
+  const [alertMessage, setalertMessage] = useState(null);
 
   useEffect(() => {
     const auth = getAuth(app);
@@ -71,8 +72,16 @@ export default function Home() {
       const idToken = await user.getIdToken();
       console.log("JWT Token 1:", idToken);
 
-      // console.log("User logged in:", user);
+      setalertMessage({
+        type: "success",
+        message: "You are now signed in."
+      });
 
+      setTimeout(() => {
+        setalertMessage(null);
+      }, 3000);
+      // console.log("User logged in:", user);
+      // alert("login sucess.");
       router.push("/map");
     } catch (error) {
       if (error.code === 'auth/wrong-password') {
@@ -117,7 +126,6 @@ export default function Home() {
       return;
     }
 
-
     const auth = getAuth(app);
     try {
       await sendPasswordResetEmail(auth, emailForPasswordReset);
@@ -132,6 +140,11 @@ export default function Home() {
     // <div className={styles.root_login}>
     //   <main className={styles.card}>
     <div className="flex min-h-screen flex-col items-center justify-center px-4 py-5 lg:px-6">
+      {alertMessage && (
+        <div className="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400" role="alert">
+          <span className="font-medium">Login successful!</span> {alertMessage.message}
+        </div>
+      )}
       <div className="sm:mx-auto sm:w-full sm:max-w-sm">
         <div className='flex justify-center'>
           <Image
@@ -164,7 +177,7 @@ export default function Home() {
                 required
                 autoComplete="email"
                 aria-label="input"
-                className={styles.input_email }
+                className={styles.input_email}
               />
             </div>
           </div>

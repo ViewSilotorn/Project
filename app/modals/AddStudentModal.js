@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import { getAuth } from "firebase/auth";
 import { fetchStudents } from "../services/studentService";
 import mapboxgl from "mapbox-gl";
+import Swal from 'sweetalert2';
+import showAlert from './ShowAlert';
 
 const host = process.env.NEXT_PUBLIC_API_HOST;
 const port = process.env.NEXT_PUBLIC_API_PORT;
@@ -19,7 +21,6 @@ const addStudent = ({ isOpenAddStudent, onCloseAddStudent, onAddStudent }) => {
     const [map, setMap] = useState(null);
     const mapContainer = useRef(null); // ใช้สำหรับเก็บ ref ของ container สำหรับแผนที่
     const [error, setError] = useState(null);
-
 
     const [formData, setFormData] = useState({
         first_name: "",
@@ -124,6 +125,19 @@ const addStudent = ({ isOpenAddStudent, onCloseAddStudent, onAddStudent }) => {
             console.log("API Response:", data);
 
             onAddStudent(data);
+
+            // Swal.fire({
+            //     text: 'Import complete!',
+            //     icon: 'success',
+            //     timer: 2000,
+            //     showConfirmButton: false, 
+            //     customClass: {
+            //         popup: style.myPopup,
+            //         content: style.myContent,
+            //         confirmButton: style.myConfirmButton,
+            //       }
+            // });
+            showAlert("Import success!");
             // ...
             onCloseAddStudent();
         } catch (error) {

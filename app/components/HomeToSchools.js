@@ -29,6 +29,7 @@ export default function HomeToSchoolSidebar({ isOpen, openComponent, onClose, ma
     // const [downloadData, setDownloadData] = useState(false);
     const [user, setUser] = useState(null);
     const [idToken, setIdToken] = useState(""); // State สำหรับเก็บ token
+    const typePage = "find"
 
     useEffect(() => {
         const unsubscribe = subscribeAuthState(setUser, setIdToken); // เรียกใช้ service
@@ -267,10 +268,11 @@ export default function HomeToSchoolSidebar({ isOpen, openComponent, onClose, ma
                     parseInt(numVehicles),
                     parseInt(maxStopsPerVehicle),
                     parseInt(maxTravelTime),
-                    true
+                    true,
+                    "home"
                 );
                 // openComponent("Route");
-                openComponent("Route", { routes, routeColors, routeDistance, routeDuration, Didu });
+                openComponent("Route", { routes, routeColors, routeDistance, routeDuration, Didu ,typePage});
             }
 
         } catch (error) {
@@ -288,7 +290,6 @@ export default function HomeToSchoolSidebar({ isOpen, openComponent, onClose, ma
         }, 1000);
         return () => clearInterval(interval);
     }, []);
-
 
     return (
         <aside

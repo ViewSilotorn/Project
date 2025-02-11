@@ -12,6 +12,12 @@ export default function BusToSchoolSidebar({ isOpen, onClose, mapRef, mapElement
   const [maxStopsPerVehicle, setMaxStopsPerVehicle] = useState(24);
   const [maxTravelTime, setMaxTravelTime] = useState(100);
 
+  const [openDropdown, setOpenDropdown] = useState(false);
+
+  const toggleDropdown = () => {
+    setOpenDropdown(!openDropdown);
+  };
+
   const elements = mapElements || [];
 
   const [rows, setRows] = useState([
@@ -178,7 +184,7 @@ export default function BusToSchoolSidebar({ isOpen, onClose, mapRef, mapElement
   const handleChangeRadius = (idx, value) => {
     if (/^\d*\.?\d{0,1}$/.test(value)) {
       const updatedRadius = [...radiusValues];
-      
+
       updatedRadius[idx] = value; // อัปเดตค่า radius ของ field นั้น
       setRadiusValues(updatedRadius);
 
@@ -201,7 +207,7 @@ export default function BusToSchoolSidebar({ isOpen, onClose, mapRef, mapElement
   //   setIsButtonDisabled(false)
   //   onClose()
   // }
-  
+
   const [dateTime, setDateTime] = useState(null);
   useEffect(() => {
     setDateTime(new Date());
@@ -211,10 +217,14 @@ export default function BusToSchoolSidebar({ isOpen, onClose, mapRef, mapElement
     return () => clearInterval(interval);
   }, []);
 
+  const handleTabChange = (tabId) => {
+    // ถ้าคลิกแท็บเดิมให้ปิดแท็บ (set to null)
+    setActiveTab(tabId === activeTab ? null : tabId);
+  }
   return (
     <aside
       className="fixed z-50 w-full sm:w-[500px] h-[500px] sm:h-screen bg-white border-t sm:border-t-0 sm:border-r border-gray-300
-      bottom-0 sm:top-0 lg:top-0 transition-transform overflow-x-auto
+      bottom-0 sm:top-0 lg:top-0 transition-transform
     "
     >
       <button
@@ -417,7 +427,7 @@ export default function BusToSchoolSidebar({ isOpen, onClose, mapRef, mapElement
                       type="number"
                       min="0.0"
                       step="0.1"
-                      value={radiusValues[idx] || ""} 
+                      value={radiusValues[idx] || ""}
                       className={`${styles.input_km} ml-3`}
                       onChange={(e) => handleChangeRadius(idx, e.target.value)}
                     />
@@ -441,6 +451,38 @@ export default function BusToSchoolSidebar({ isOpen, onClose, mapRef, mapElement
                 </div>
               </button>
             </div>
+
+            <div className="border border-gray-100 mt-5 p-2">
+              <div className="flex justify-between ">
+                <span className="text-grey-darkest font-thin text-xl">
+                  Routes 
+                </span>
+                <div onClick={toggleDropdown} >
+
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5} stroke="currentColor"
+                    className="size-6"
+                    style={{
+                      transform: openDropdown ? "rotate(180deg)" : "rotate(0deg)", // หมุนไอคอน
+                      transition: "transform 0.3s ease", // การหมุนมีการ transition
+                    }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                  </svg>
+
+                </div>
+              </div>
+         
+
+            </div>
+            {openDropdown && (
+                <div className="border border-gray-100 p-2">
+                  <ul className="py-2 text-sm text-gray-700 dark:text-gray-200">
+                    <li></li>
+
+                  </ul>
+                </div>
+              )}
           </div>
         </div>
         <div className="mt-auto sticky bottom-0 flex justify-center bg-[#f9f9f9] border-t border-gray-300 w-full">

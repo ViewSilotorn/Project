@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { getAuth } from "firebase/auth";
 import { getStudentById, updateDataById } from '../services/studentService';
 import mapboxgl from "mapbox-gl";
+import showAlert from './ShowAlert';
 
 const host = process.env.NEXT_PUBLIC_API_HOST;
 const port = process.env.NEXT_PUBLIC_API_PORT;
@@ -104,6 +105,7 @@ const EditStudent = ({ id, isOpenEditStudent, onCloseEditStudent, updateStudent 
             console.log('Update Student:', result);
 
             updateStudent(result);
+            showAlert("Edit success!")
             onCloseEditStudent();
         } catch (error) {
             // Capture the error message to display to the user

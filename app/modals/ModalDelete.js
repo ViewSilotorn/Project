@@ -1,10 +1,10 @@
 import styles from '../css/delete.module.css';
-import { useState } from "react"; 
+import { useState } from "react";
 
-const ModalDelete = ({ isOpen, onClose, onConfirm }) => {
+const ModalDelete = ({ isOpen, onClose, onConfirm, type }) => {
     if (!isOpen) return null;
     // const [isModalOpen, setIsModalOpen] = useState(false);
-    
+
     return (
         <div className='fixed inset-0 flex items-center justify-center bg-black bg-opacity-50'>
             <main className={`${styles.card}`}>
@@ -37,35 +37,79 @@ const ModalDelete = ({ isOpen, onClose, onConfirm }) => {
                     <div className="space-y-2">
 
                         <div className="px-6 py-4">
-                            <div className="grid gap-2 grid-cols-[repeat(auto-fit,minmax(0,1fr))]">
+                            {type === "deleteStudent" ? (
+                                <div className="grid gap-2 grid-cols-[repeat(auto-fit,minmax(0,1fr))]">
 
-                                <button type="button" onClick={onConfirm}
-                                    className={`${styles.btn_delete} inline-flex items-center justify-center`}>
+                                    <button type="button" onClick={onConfirm}
+                                        className={`${styles.btn_delete} inline-flex items-center justify-center`}>
 
-                                    <span className="flex items-center gap-1">
-                                        <span className={styles.text_delete}>
-                                            Delete
+                                        <span className="flex items-center gap-1">
+                                            <span className={styles.text_delete}>
+                                                Delete
+                                            </span>
                                         </span>
-                                    </span>
 
-                                    {/* {isModalOpen && (
-                                        <div className="modal">
-                                            <p>Data deleted successfully!</p>
-                                            <button onClick={() => setIsModalOpen(false)}>Close</button>
-                                        </div>
-                                    )} */}
+                                    </button>
 
-                                </button>
-
-                                <button onClick={onClose} type="button"
-                                    className={`${styles.btn_cancel} inline-flex items-center justify-center`}>
-                                    <span className="flex items-center gap-1">
-                                        <span className={styles.text_cancel}>
-                                            Cancel
+                                    <button onClick={onClose} type="button"
+                                        className={`${styles.btn_cancel} inline-flex items-center justify-center`}>
+                                        <span className="flex items-center gap-1">
+                                            <span className={styles.text_cancel}>
+                                                Cancel
+                                            </span>
                                         </span>
-                                    </span>
-                                </button>
-                            </div>
+                                    </button>
+
+                                </div>
+                            ) : type === "deleteAll" ? (
+                                <div className="grid gap-2 grid-cols-[repeat(auto-fit,minmax(0,1fr))]">
+
+                                    <button type="button" onClick={onConfirm}
+                                        className={`${styles.btn_delete} inline-flex items-center justify-center`}>
+
+                                        <span className="flex items-center gap-1">
+                                            <span className={styles.text_delete}>
+                                                Delete
+                                            </span>
+                                        </span>
+
+                                    </button>
+
+                                    <button onClick={onClose} type="button"
+                                        className={`${styles.btn_cancel} inline-flex items-center justify-center`}>
+                                        <span className="flex items-center gap-1">
+                                            <span className={styles.text_cancel}>
+                                                Cancel
+                                            </span>
+                                        </span>
+                                    </button>
+
+                                </div>
+                            ) : type === "deleteHistory" ? (
+                                <div className="grid gap-2 grid-cols-[repeat(auto-fit,minmax(0,1fr))]">
+
+                                    <button type="button" onClick={onConfirm}
+                                        className={`${styles.btn_delete} inline-flex items-center justify-center`}>
+
+                                        <span className="flex items-center gap-1">
+                                            <span className={styles.text_delete}>
+                                                Delete
+                                            </span>
+                                        </span>
+
+                                    </button>
+
+                                    <button onClick={onClose} type="button"
+                                        className={`${styles.btn_cancel} inline-flex items-center justify-center`}>
+                                        <span className="flex items-center gap-1">
+                                            <span className={styles.text_cancel}>
+                                                Cancel
+                                            </span>
+                                        </span>
+                                    </button>
+
+                                </div>
+                            ) : null}
                         </div>
                     </div>
                 </div>

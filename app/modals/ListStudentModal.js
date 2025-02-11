@@ -1,12 +1,10 @@
-import style from '../css/side.module.css';
-import styles from '../css/nav.module.css';
-import Link from 'next/link';
 import stAddList from '../css/addListStudent.module.css'
 import { useState } from "react";
-import { getAuth } from "firebase/auth";
 import Papa from "papaparse"; // สำหรับการอ่านไฟล์ CSV
 import { read, utils } from "xlsx"; // ไลบรารีสำหรับ XLS/XLSX
-import { createBatchStudents} from "../services/studentService";
+import { createBatchStudents } from "../services/studentService";
+import showAlert from './ShowAlert';
+
 
 const host = process.env.NEXT_PUBLIC_API_HOST;
 const port = process.env.NEXT_PUBLIC_API_PORT;
@@ -14,7 +12,7 @@ const port = process.env.NEXT_PUBLIC_API_PORT;
 // สร้าง base URL
 const apiBaseUrl = `${host}:${port}`;
 
-const ListStudent = ({ isOpenListStudent, onCloseListStudent, onAddListStudent}) => {
+const ListStudent = ({ isOpenListStudent, onCloseListStudent, onAddListStudent }) => {
     if (!isOpenListStudent) return null;
 
     const [students, setStudents] = useState([]);
@@ -113,6 +111,19 @@ const ListStudent = ({ isOpenListStudent, onCloseListStudent, onAddListStudent})
 
         onAddListStudent(students)
 
+        // Swal.fire({
+        //     text: 'Import complete!',
+        //     icon: 'success',
+        //     timer: 2000,
+        //     showConfirmButton: false, 
+        //     customClass: {
+        //         popup: style.myPopup,
+        //         content: style.myContent,
+        //         // confirmButton: style.myConfirmButton,
+        //     }
+        // });
+        showAlert("Import success!");
+
         // ปิด modal และรีเซ็ต state
         onCloseListStudent();
     };
@@ -125,7 +136,8 @@ const ListStudent = ({ isOpenListStudent, onCloseListStudent, onAddListStudent})
         >
             <div className="bg-white rounded-lg shadow-xl p-6 w-[663px] h-[766px] max-w-2xl relative z-50 max-h-[90vh] overflow-y-auto">
                 <div className=" sm:rounded-lg  flex flex-col justify-center py-3">
-                    <Link href="" onClick={onCloseListStudent} className={style.link}>
+
+                    {/* <Link href="" onClick={onCloseListStudent} className={style.link}>
                         <div className='flex lg:px-5 py-2 sm:py-2'>
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6 pb-1">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
@@ -134,7 +146,29 @@ const ListStudent = ({ isOpenListStudent, onCloseListStudent, onAddListStudent})
                                 Back to Student
                             </div>
                         </div>
-                    </Link>
+                    </Link> */}
+                    <div className='flex lg:px-5 py-2 sm:py-2'>
+                        <button
+                            type="button"
+                            className="bg-transparent hover:bg-gray-200  rounded-lg z-20 p-1.5 absolute top-5 end-4 inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                            onClick={onCloseListStudent}
+                        >
+                            <svg
+                                aria-hidden="false"
+                                className="w-6 h-6"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <path
+                                    fillRule="evenodd"
+                                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                    clipRule="evenodd"
+                                ></path>
+                            </svg>
+                            <span className="sr-only">Close menu</span>
+                        </button>
+                    </div>
                     <div className="lg:px-16 py-5 sm:py-5 px-2">
                         <h2 className={stAddList.title}>
                             Import List of Student
@@ -156,7 +190,7 @@ const ListStudent = ({ isOpenListStudent, onCloseListStudent, onAddListStudent})
                                         <p>
                                             <span >Files supported: XLS,XLSX,CSV</span>
                                         </p>
-                                        <p>Size limit: 1 MB</p>
+                                        {/* <p>Size limit: 1 MB</p> */}
                                     </div>
                                     {selectedFileName && (
                                         <p className="mt-2 text-sm text-gray-600">Selected file: <span className="font-medium">{selectedFileName}</span></p>

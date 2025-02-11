@@ -1,26 +1,49 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DetailRouteSidebar from "../components/DetailRoute";
 import styles from '../css/HomeToSchools.module.css';
+import { subscribeAuthState } from "../services/authService"
+import { saveTrip } from "../services/tripService";
+import ResetModal from "../modals/ResetModal";
+import SaveModal from "../modals/SaveModal";
+import showAlert from "../modals/ShowAlert";
 
-export default function RouteSidebar({ isOpen, openComponent, onClose, mapRef, routes, routeColors, routeDistance, routeDuration, Didu, color }) {
+export default function RouteSidebar({ isOpen, openComponent, onClose, mapRef, routes, routeColors, routeDistance, routeDuration, Didu, color, typePage }) {
   const [activeComponent, setActiveComponent] = useState("list"); // "list" = หน้ารายการ, "detail" = หน้ารายละเอียด
   const [selectedRoute, setSelectedRoute] = useState(null); // เก็บข้อมูลเส้นทางที่เลือก
   // const [distance, setDistance] = useState(null);
 
   if (!isOpen) return null; // ถ้า Sidebar ไม่เปิด ให้คืนค่า null
 
+  const [user, setUser] = useState(null);
+  const [idToken, setIdToken] = useState(""); // State สำหรับเก็บ token
+
+  useEffect(() => {
+    const unsubscribe = subscribeAuthState(setUser, setIdToken); // เรียกใช้ service
+    return () => unsubscribe(); // เมื่อ component ถูกลบออก, ยกเลิกการ subscribe
+  }, []); // ใช้ [] เพื่อให้เพียงแค่ครั้งแรกที่ mount
+
   // console.log("F' Route Didu ->>>>"+Didu);
   // console.log("ROUTES Dur ->>>> "+routeDuration);
 
-  const [showModal, setShowModal] = useState(false);
+  const [showResetModal, setshowResetModal] = useState(false);
 
   const onclick = () => {
-    setShowModal(true);
+    setshowResetModal(true);
   }
 
   const cancel = () => {
-    setShowModal(false);
+    setshowResetModal(false);
+  }
+
+  const [showSaveModal, setshowSaveModal] = useState(false);
+
+  const openModal = () => {
+    setshowSaveModal(true);
+  }
+
+  const CloseModal = () => {
+    setshowSaveModal(false);
   }
   // const handleRouteClick = (route, index) => {
   //   setSelectedRoute({ route, index }); // เก็บข้อมูลเส้นทาง
@@ -38,6 +61,16 @@ export default function RouteSidebar({ isOpen, openComponent, onClose, mapRef, r
     openComponent();
   };
 
+  const backpage = () => {
+    mapRef.current.handleReset();
+    openComponent('HistoryRoute');
+  };
+
+  const closePage = () => {
+    mapRef.current.handleReset();
+    onClose()
+  };
+
   const drawRoute = async (route, routeKey, routeColor, type) => {
     // console.log(distance, duration);
     mapRef.current.handleReset();
@@ -52,6 +85,95 @@ export default function RouteSidebar({ isOpen, openComponent, onClose, mapRef, r
 
     setSelectedRoute({ route, routeKey, routeColor, distance, duration }); // เก็บข้อมูลเส้นทาง
     setActiveComponent("detail"); // เปลี่ยนไปหน้ารายละเอียด
+  };
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSaveTrip = async () => {
+    if (!idToken) {
+      console.error("🔴 No idToken found");
+      return;
+    }
+
+    setIsLoading(true);
+
+
+    const formattedRoutes = routes.map((route, index) => ({
+      [`route ${index + 1}`]: route,  // แก้ไขให้ route เป็น array ของพิกัดโดยตรง
+      color: routeColors[index] || "#000000"  // ใช้สีจาก routeColors หรือค่า default
+    }));
+
+    const tripData = {
+      school_id: 1,
+      types: "Home To School",
+      routes: formattedRoutes
+    };
+
+    console.log("📌 thiss routes:", JSON.stringify(tripData, null, 2));
+
+    try {
+      const result = await saveTrip(idToken, tripData);
+      // Swal.fire({
+      //   text: 'Save complete!',
+      //   icon: 'success',
+      //   timer: 2000,
+      //   showConfirmButton: false, 
+      //   // confirmButtonText: 'Thanks',
+      //   customClass: {
+      //     popup: styles.myPopup,
+      //     content: styles.myContent,
+      //     // confirmButton: styles.myConfirmButton,
+      //   }
+      // });
+      showAlert("Save complete!")
+      console.log("🟢 Trip saved successfully:", result);
+      mapRef.current.handleReset();
+      openComponent("HistoryRoute");
+    } catch (error) {
+      console.error("🔴 Failed to save trip:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+
+  // ฟังก์ชันสำหรับดาวน์โหลดไฟล์ CSV
+  const downloadFile = () => {
+    // สร้าง CSV จาก routes และ routeColors
+    const csvHeaders = "route_name,latitude,longitude,color\n";
+    const csvRows = [];
+
+    // สร้างข้อมูล CSV โดยใช้ข้อมูลจาก routes และ routeColors
+    routes.forEach((route, routeIndex) => {
+      const routeKey = `route ${routeIndex + 1}`;
+      const color = routeColors[routeIndex]; // ใช้สีที่ตรงกับแต่ละ route
+
+      // เพิ่มพิกัดและสีลงใน CSV
+      route[routeKey].forEach(coordinate => {
+        const [latitude, longitude] = coordinate;
+        csvRows.push(`${routeKey},${latitude},${longitude},${color}`);
+      });
+    });
+
+    // รวม header และ rows
+    const csvContent = csvHeaders + csvRows.join("\n");
+
+    // สร้าง Blob จากข้อมูล CSV
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+
+    // สร้าง URL สำหรับดาวน์โหลด
+    const url = URL.createObjectURL(blob);
+
+    // สร้าง link สำหรับดาวน์โหลด
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'routes_data.csv');
+
+    // คลิกเพื่อดาวน์โหลด
+    link.click();
+
+    // ทำลาย URL หลังจากการดาวน์โหลดเสร็จ
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -85,7 +207,18 @@ export default function RouteSidebar({ isOpen, openComponent, onClose, mapRef, r
         {/* Sticky top */}
         <div className="sticky top-0">
           <div className="flex items-center justify-center mt-5 mb-2">
-            <h1 className={styles.Route}>All Routes</h1>
+            <button
+              onClick={backpage}
+              className="p-2 rounded"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="size-8">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+              </svg>
+
+            </button>
+            <div className="flex items-center grow justify-center mr-5">
+              <h1 className={styles.Route}>All Routes</h1>
+            </div>
           </div>
         </div>
         <hr></hr>
@@ -105,7 +238,6 @@ export default function RouteSidebar({ isOpen, openComponent, onClose, mapRef, r
                 }}
 
               >
-
 
                 {/* สีแท็บแสดงสถานะ */}
                 <div className={`w-3 sm:w-5 h-full rounded-l-lg`} style={{
@@ -205,25 +337,51 @@ export default function RouteSidebar({ isOpen, openComponent, onClose, mapRef, r
             </ul>
           </div>
         </div>
-
-        <div className="mt-auto sticky bottom-0 left-0 right-0 bg-white border-t pt-6 pb-[20px] flex justify-between space-x-3">
-          <button
-            onClick={() => onclick()}
-            className={` ${styles.btn_reset} flex-1 `}
-          >
-            Reset
-          </button>
-          <button
-
-            className={` ${styles.btn_save} flex-1 `}
-          >
-            Save
-          </button>
-        </div>
+        {typePage === "find" ? (
+          <div className="mt-auto sticky bottom-0 left-0 right-0 bg-white border-t pt-6 pb-[20px] flex justify-between space-x-3">
+            <button
+              onClick={() => onclick()}
+              className={` ${styles.btn_reset} flex-1 `}
+            >
+              Reset
+            </button>
+            <button
+              onClick={openModal}
+              className={` ${styles.btn_save} flex-1 `}
+            >
+              Save
+            </button>
+          </div>) : typePage === "history" ? (
+            <div className="mt-auto sticky bottom-0 left-0 right-0 bg-white border-t pt-6 pb-[20px] flex  justify-center space-x-3">
+              {/* <button
+                onClick={closePage}
+                className="flex-1 text-white bg-red-500 p-2 rounded hover:bg-red-600"
+              >
+                Close
+              </button> */}
+              <button
+                onClick={downloadFile}
+                className={styles.btn_download}
+              >
+                Download
+              </button>
+            </div>
+          ) : (
+            <div className="mt-auto sticky bottom-0 left-0 right-0 bg-gray-100 border-t pt-6 pb-[20px] flex justify-between space-x-3">
+            <button
+              onClick={closePage}
+              className="flex-1 text-white bg-red-500 p-2 rounded hover:bg-red-600"
+            >
+              Close
+            </button>
+            </div>
+          )}
 
       </div>
 
-      {showModal && (
+      <ResetModal isOpen={showResetModal} onClose={cancel} resetRoute={resetRoute}></ResetModal>
+      <SaveModal isOpen={showSaveModal} onClose={CloseModal} handleSaveTrip={handleSaveTrip}></SaveModal>
+      {/* {showModal && (
         <div className={styles.modal_overlay}>
           <div className={styles.card_modal}>
             <div className="flex flex-1 flex-col justify-center relative px-6 lg:px-8">
@@ -276,20 +434,9 @@ export default function RouteSidebar({ isOpen, openComponent, onClose, mapRef, r
                 </div>
               </div>
             </div>
-
-
-            {/* <h3>Do you want to download the file?</h3> */}
-            {/* <div>
-                          <button onClick={onDownload} className={St.btn_yes}>
-                            Yes
-                          </button>
-                          <button onClick={onCloseModal} className={St.btn_no}>
-                            No
-                          </button>
-                        </div> */}
           </div>
         </div>
-      )}
+      )} */}
 
 
       {activeComponent === "detail" && selectedRoute && (

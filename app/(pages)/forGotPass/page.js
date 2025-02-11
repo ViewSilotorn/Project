@@ -9,6 +9,7 @@ import Form from 'next/form'
 import Modal from "../../modals/Modal";
 import { getAuth, sendPasswordResetEmail } from "firebase/auth";
 import app from "../../../config";
+import showAlert from '@/app/modals/ShowAlert';
 
 
 export default function ForgotPassword() {
@@ -35,7 +36,9 @@ export default function ForgotPassword() {
         try {
             await sendPasswordResetEmail(auth, emailForPasswordReset);
             // alert("Password reset email sent! Please check your inbox.");
-            openModal(true)
+            // openModal(true)
+            showAlert('Reset successfully!')
+            
             // setShowPopupReset(false); // Close the modal after sending the reset email
         } catch (error) {
             alert("Error sending password reset email: " + error.message);
@@ -91,8 +94,8 @@ export default function ForgotPassword() {
                     </Link>
                 </div>
             </div>
-            <Modal isOpen={isModalOpen} onClose={closeModal}>
-            </Modal>
+            {/* <Modal isOpen={isModalOpen} onClose={closeModal}>
+            </Modal> */}
         </div>
     );
 }
