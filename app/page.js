@@ -20,7 +20,7 @@ import { subscribeAuthState } from './services/authService';
 
 
 export default function Home() {
-  const router = useRouter()
+  const router = useRouter();
   const [user, setUser] = useState(null);
   const [error, setError] = useState(null);
   const [emailForPasswordReset, setEmailForPasswordReset] = useState(""); // สำหรับกรอกอีเมลในการรีเซ็ตรหัสผ่าน
@@ -32,18 +32,6 @@ export default function Home() {
   useEffect(() => {
     const auth = getAuth(app);
     const unsubscribe = subscribeAuthState(setUser, setIdToken);
-    //   if (user) {
-    //     if (!user.emailVerified) {
-    //       // setError("Please verify your email before accessing your account.");
-    //       auth.signOut();
-    //       setUser(null);
-    //     } else {
-    //       setUser(user);
-    //     }
-    //   } else {
-    //     setUser(null);
-    //   }
-    // });
     return () => unsubscribe();
   }, []);
 

@@ -5,13 +5,6 @@ import { read, utils } from "xlsx"; // ไลบรารีสำหรับ X
 import { createBatchStudents } from "../services/studentService";
 import showAlert from './ShowAlert';
 
-
-const host = process.env.NEXT_PUBLIC_API_HOST;
-const port = process.env.NEXT_PUBLIC_API_PORT;
-
-// สร้าง base URL
-const apiBaseUrl = `${host}:${port}`;
-
 const ListStudent = ({ isOpenListStudent, onCloseListStudent, onAddListStudent }) => {
     if (!isOpenListStudent) return null;
 
@@ -108,7 +101,6 @@ const ListStudent = ({ isOpenListStudent, onCloseListStudent, onAddListStudent }
         //     }
         // });
         createBatchStudents(students)
-
         onAddListStudent(students)
 
         // Swal.fire({
@@ -123,6 +115,7 @@ const ListStudent = ({ isOpenListStudent, onCloseListStudent, onAddListStudent }
         //     }
         // });
         showAlert("Import success!");
+    
 
         // ปิด modal และรีเซ็ต state
         onCloseListStudent();

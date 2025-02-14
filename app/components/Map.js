@@ -5,7 +5,7 @@ import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 
 
-import { drawRoute, fetchMarkers, resetRoute, fetchRoutes, getRandomHexColor , fetchRouteByTripId} from "../services/mapboxService";
+import { drawRoute, fetchMarkers, resetRoute, fetchRoutes, getRandomHexColor, fetchRouteByTripId } from "../services/mapboxService";
 import { fetchMapCenter } from "../services/schoolService";
 import { subscribeAuthState } from "../services/authService";
 
@@ -16,7 +16,7 @@ const Map = forwardRef((props, ref) => {
   // const { radiusValues } = props; // รับค่าจาก Sidebar
 
   // console.log(">> Radius: " + radiusValues);
-  
+
   const [user, setUser] = useState(null);
   const [idToken, setIdToken] = useState(""); // State สำหรับเก็บ token
 
@@ -272,13 +272,13 @@ const Map = forwardRef((props, ref) => {
 
   // }, [mapCenter, selectedStyle]);
   const markersRef = useRef({});
-  
+
   function addMarkersToMap(map, markers) {
     // ลบหมุดเดิมก่อน เพื่อไม่ให้มีหมุดซ้ำ
     const existingMarkers = document.querySelectorAll('.custom-marker');
     existingMarkers.forEach((marker) => marker.remove());
 
-    markers.forEach(({ id,latitude, longitude, first_name, last_name, age, gender, address, status }) => {
+    markers.forEach(({ id, latitude, longitude, first_name, last_name, age, gender, address, status }) => {
       const el = document.createElement('div');
       el.className = 'custom-marker';
       el.style.width = '8px';
@@ -302,6 +302,8 @@ const Map = forwardRef((props, ref) => {
         .addTo(map);
       markersRef.current[id] = marker; // Use useRef to persist the markers
       console.log('MarkersRef:', markersRef.current);
+      // console.log(el);
+
 
       el.addEventListener('click', () => {
         map.flyTo({
@@ -469,48 +471,115 @@ const Map = forwardRef((props, ref) => {
   //     onMapElementsUpdate(mapElements);
   // };
 
+  const calculateDistance = (lat1, lng1, lat2, lng2) => {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(lat1 * Math.PI / 180) *
+      Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLng / 2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  };
 
+  const checkIfStudentInCircle = (stuntLat, studentLng, circleLat, circleLng, radius) => {
+    const distnce = calculateDistance(stuntLat, studentLng, circleLat, circleLng);
+    return distance <= radius;
+  }
 
+  const updateStudentAssignments = (circles, markers) => {
+    const newCircles = circles.map(circle => ({ ...circle,students: []}));
 
+    markers.forEach(student => {
+      let nearestCircle = null;
+      let minDistannce = Infinity;
+      newCircles.forEach(circle => {
+        if(checkIfStudentInCircle(student.latitude, student.longitude, circle.lat, circle.lng, circle.radius )) {
+          const distance = calculateDistance(student.latitude, student.longitude, circle.lat, circle.lng);
+          if (distance < minDistannce) {
+            minDistannce = distance;
+            nearestCircle = circle;
+          }
+        }
+      });
 
-  // use real
-  const onMapClick = (event, map) => {
-    const { lng, lat } = event.lngLat;
-    const circleId = `circle-${lng}-${lat}`; // สร้าง ID สำหรับวงกลม
-
-    // สร้างหมุด
-    const marker = new mapboxgl.Marker({ color: "red", draggable: true })
-      .setLngLat([lng, lat])
-      .addTo(map);
-
-    const radius = 1;
-    // const radius = radiusValues.length > 0 ? radiusValues[radiusValues.length - 1] : 1;
-
-    drawCircle([lng, lat], radius, map, circleId);
-
-    marker.on("dragend", () => {
-      
-      const newLngLat = marker.getLngLat();
-
-      drawCircle([newLngLat.lng, newLngLat.lat], radius, map, circleId);
-
-      setMapElements((prev) =>
-        prev.map((el) =>
-          el.circleId === circleId
-            ? { ...el, lng: newLngLat.lng, lat: newLngLat.lat }
-            : el
-        )
-      );
+      if(nearestCircle) {
+        nearestCircle.students.push(student);
+      }
     });
 
-    // เพิ่มหมุดใหม่ใน state
-    setMapElements((prev) => [
-      ...prev,
-      { marker, circleId, map, lng, lat},
-    ]);
+    return newCircles;
+  }
 
+  const markerCounterRef = useRef(1);
+
+  // use real
+  const onMapClick = (event, map, radius) => {
+    const { lng, lat } = event.lngLat;
+    const circleId = `circle-${lng}-${lat}`;
+  
+    // สร้าง element สำหรับ marker แบบ custom พร้อมแสดงหมายเลข
+    const markerEl = document.createElement("div");
+    markerEl.className = "custom-marker";
+    markerEl.textContent = markerCounterRef.current; // ใช้ markerCounterRef.current แสดงหมายเลข
+    markerCounterRef.current++; // เพิ่มค่าตัวนับ
+    // กำหนดสไตล์ให้กับ marker element
+    markerEl.style.backgroundColor = "yellow";
+    markerEl.style.color = "black";
+    markerEl.style.borderRadius = "50%";
+    markerEl.style.width = "15px";
+    markerEl.style.height = "15px";
+    markerEl.style.display = "flex";
+    markerEl.style.alignItems = "center";
+    markerEl.style.justifyContent = "center";
+    markerEl.style.fontWeight = "bold";
+  
+    // ตั้งค่า data attribute เพื่อเก็บค่า radius ปัจจุบัน
+    markerEl.dataset.radius = radius;
+  
+    // สร้าง marker ด้วย element ที่กำหนดเองและให้สามารถลากได้
+    const marker = new mapboxgl.Marker({ element: markerEl, draggable: true })
+      .setLngLat([lng, lat])
+      .addTo(map);
+  
+    // วาดวงกลมบนแผนที่ด้วยค่า radius ที่ส่งเข้ามา
+    drawCircle([lng, lat], radius, map, circleId);
+  
+    // สร้างวัตถุใหม่สำหรับหมุด (circle)
+    const newCircle = { marker, circleId, map, lng, lat, radius, students: [] };
+  
+    // เพิ่มหมุดใหม่ลงใน state แล้วรีคำนวณการจัดสรรนักเรียน
+    setMapElements((prev) => {
+      const updatedCircles = [...prev, newCircle];
+      return updateStudentAssignments(updatedCircles, markers);
+    });
+  
+    // เมื่อ marker ถูกลาก (dragend)
+    marker.on("dragend", () => {
+      const newLngLat = marker.getLngLat();
+      // อ่านค่า radius ปัจจุบันจาก marker element
+      const currentRadius = parseFloat(marker.getElement().dataset.radius);
+  
+      // วาดวงกลมใหม่ในตำแหน่งที่ลาก โดยใช้ currentRadius
+      drawCircle([newLngLat.lng, newLngLat.lat], currentRadius, map, circleId);
+  
+      // อัปเดต state ของหมุดด้วยตำแหน่งใหม่และค่า radius ปัจจุบัน
+      setMapElements((prev) => {
+        const updatedCircles = prev.map((el) =>
+          el.circleId === circleId
+            ? { ...el, lng: newLngLat.lng, lat: newLngLat.lat, radius: currentRadius }
+            : el
+        );
+        // รีคำนวณการจัดสรรนักเรียนใหม่ในทุกหมุด
+        return updateStudentAssignments(updatedCircles, markers);
+      });
+    });
+  
+    // ปิดการเพิ่มหมุดใหม่ (ถ้าต้องการ)
     setAddCircleClick(false);
   };
+  
 
   // ใช้ useEffect เพื่อส่งข้อมูลไปที่ Parent Component เมื่อ mapElements เปลี่ยนแปลง
   useEffect(() => {
@@ -626,7 +695,7 @@ const Map = forwardRef((props, ref) => {
       props.onMapElementsUpdate([]); // แจ้ง Parent Component ว่าไม่มีข้อมูลแล้ว
     }
   };
-  
+
 
 
 
@@ -678,35 +747,35 @@ const Map = forwardRef((props, ref) => {
       let colors = []
 
       // เรียก fetchRoutes เพื่อคำนวณเส้นทาง
-      if(findBy === "home"){
+      if (findBy === "home") {
         result = await fetchRoutes(idToken, mapRef.current, data);
         // setRoutes(result);
-        console.log("route ที่ได้ "+ result);
-       
+        console.log("route ที่ได้ " + result);
+
         colors = result.map(() => getRandomHexColor());
         // setRouteColors(colors);
-      }else if(findBy === "his"){
+      } else if (findBy === "his") {
         result = await fetchRouteByTripId(idToken, trip_id);
 
-        console.log("HIS "+ result);
+        console.log("HIS " + result);
 
         // colors = result.map(() => getRandomHexColor());
         colors = result.map(route => route.color);
-        console.log("this color"+colors);
-        
-      }else if(findBy === "import"){
+        console.log("this color" + colors);
+
+      } else if (findBy === "import") {
         result = roteImport;
 
-        console.log("import "+ result);
-        
-    
+        console.log("import " + result);
+
+
         colors = result.map(route => route.color);
-        console.log("this color"+colors);
-        
-      }else {
+        console.log("this color" + colors);
+
+      } else {
 
       }
-      
+
 
       const distance = [];
       const duration = [];
@@ -735,8 +804,8 @@ const Map = forwardRef((props, ref) => {
       const diduArray = await Promise.all(drawPromises);
 
 
-      console.log("this route Befor send: "+ result);
-      
+      console.log("this route Befor send: " + result);
+
 
       return { routes: result, routeColors: colors, routeDistance: distance, routeDuration: duration, Didu: JSON.stringify(diduArray, null, 2) };
 

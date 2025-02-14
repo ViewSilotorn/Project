@@ -1,9 +1,6 @@
 import { getAuth } from "firebase/auth";
-const host = process.env.NEXT_PUBLIC_API_HOST;
-const port = process.env.NEXT_PUBLIC_API_PORT;
 
-// สร้าง base URL
-const apiBaseUrl = `${host}:${port}`;
+import configService from "./configService";
 
 const HandleDelete = async (id) => {
 
@@ -17,7 +14,7 @@ const HandleDelete = async (id) => {
     console.log("JWT Token:", idToken);
 
     // เรียก API
-    const response = await fetch(`${apiBaseUrl}/api/students/${id}`, {
+    const response = await fetch(`${configService.baseURL}/api/students/${id}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${idToken}`,

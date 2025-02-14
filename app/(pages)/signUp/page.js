@@ -14,62 +14,75 @@ export default function SignUp() {
     const router = useRouter()
     const [showPassword, setShowPassword] = useState(false);
     const [showFGPassword, setShowFGPassword] = useState(false);
-
+    const [alertMessage, setalertMessage] = useState(null);
     const auth = getAuth(app);
     const [formData, setFormData] = useState({
-      email: "",
-      password: "",
-      confirmPassword: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
     });
     const [message, setMessage] = useState("");
     const [loading, setLoading] = useState(false);
-  
+
     const handleInputChange = (e) => {
-      setFormData({ ...formData, [e.target.name]: e.target.value });
+        setFormData({ ...formData, [e.target.name]: e.target.value });
     };
-  
+
     const handleSubmit = async (e) => {
-      e.preventDefault();
-  
-      if (formData.password !== formData.confirmPassword) {
-        alert("Passwords do not match!");
-        return;
-      }
-  
-      setLoading(true);
-      setMessage("");
-  
-      try {
-        const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
-        const user = userCredential.user;
-  
-        await sendEmailVerification(user);
-  
-        localStorage.setItem(
-          "registrationData",
-          JSON.stringify({
-            email: formData.email,
-            password: formData.password,
-          })
-        );
-  
-        // setMessage("Registration successful! Please check your email for verification.");
-        alert("Registration successful! Please check your email for verification.");
-        setLoading(false);
-        router.push("/");
-  
-        // Uncomment the following line if you want to redirect after signup.
-        // router.push("/home");
-      } catch (error) {
-        setLoading(false);
-        alert("มีบัญชีอยู่แล้ว");
-        
-      }
+        e.preventDefault();
+
+        if (formData.password !== formData.confirmPassword) {
+            alert("Passwords do not match!");
+            return;
+        }
+
+        setLoading(true);
+        setMessage("");
+
+        try {
+            const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+            const user = userCredential.user;
+
+            await sendEmailVerification(user);
+
+            localStorage.setItem(
+                "registrationData",
+                JSON.stringify({
+                    email: formData.email,
+                    password: formData.password,
+                })
+            );
+
+            // setMessage("Registration successful! Please check your email for verification.");
+            // alert("Registration successful! Please check your email for verification.");
+            setalertMessage({
+                type: "success",
+                message: "You're now past of our team here."
+            })
+
+            setTimeout(() => {
+                setalertMessage(null);
+            }, 3000)
+            setLoading(false);
+            router.push("/");
+
+            // Uncomment the following line if you want to redirect after signup.
+            // router.push("/home");
+        } catch (error) {
+            setLoading(false);
+            alert("มีบัญชีอยู่แล้ว");
+
+        }
     };
     return (
         // <div className={styles.root_signUp}>
         //     <main className={styles.card}>
         <div className="flex min-h-screen  flex-col items-center justify-center px-4 py-8 lg:px-6">
+            {alertMessage && (
+                <div className="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400" role="alert">
+                    <span className="font-medium">Signup was a success!!</span> {alertMessage.message}
+                </div>
+            )}
             <div className="sm:mx-auto sm:w-full sm:max-w-sm">
                 <div className='flex justify-center'>
                     <Image
@@ -115,7 +128,7 @@ export default function SignUp() {
                             <input
                                 id="password"
                                 name="password"
-                                type="password"
+                                type={showPassword ? "text" : "password"}
                                 placeholder="Enter your password"
                                 required
                                 autoComplete="new-password"
@@ -148,16 +161,17 @@ export default function SignUp() {
                         </label>
                         <div className={`${styles.input_placeholder_password} relative`}>
                             <input
-                                 id="confirmPassword"
-                                 name="confirmPassword"
-                                 type="mew-password"
-                                 placeholder="Confirm Password"
-                                 required
-                                 value={formData.confirmPassword}
-                                 onChange={handleInputChange}
+                                id="confirmPassword"
+                                name="confirmPassword"
+                                type={showFGPassword ? "text" : "password"}
+                                placeholder="Confirm Password"
+                                autoComplete="new-password"
+                                required
+                                value={formData.confirmPassword}
+                                onChange={handleInputChange}
                                 className={styles.input_password}
                             />
-                            <button  type="submit" onClick={() => setShowFGPassword(!showFGPassword)}
+                            <button type="submit" onClick={() => setShowFGPassword(!showFGPassword)}
                                 className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 focus:outline-none">
                                 {showFGPassword ? (
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6">

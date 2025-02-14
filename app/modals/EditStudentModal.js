@@ -5,13 +5,8 @@ import { useState, useEffect, useRef } from "react";
 import { getAuth } from "firebase/auth";
 import { getStudentById, updateDataById } from '../services/studentService';
 import mapboxgl from "mapbox-gl";
+import "mapbox-gl/dist/mapbox-gl.css";
 import showAlert from './ShowAlert';
-
-const host = process.env.NEXT_PUBLIC_API_HOST;
-const port = process.env.NEXT_PUBLIC_API_PORT;
-
-// สร้าง base URL
-const apiBaseUrl = `${host}:${port}`;
 
 const EditStudent = ({ id, isOpenEditStudent, onCloseEditStudent, updateStudent }) => {
     if (!isOpenEditStudent) return null;
@@ -65,13 +60,22 @@ const EditStudent = ({ id, isOpenEditStudent, onCloseEditStudent, updateStudent 
     const [showMap, setShowMap] = useState(false);
 
     useEffect(() => {
-        if (!showMap || !mapContainerRef.current || !formData.latitude || !formData.longitude) return;
+        if (!mapContainerRef.current || !formData.latitude || !formData.longitude) return;
 
         const map = new mapboxgl.Map({
             container: mapContainerRef.current,
-            style: "mapbox://styles/mapbox/outdoors-v12",
+            style: "mapbox://styles/mapbox/light-v10",
             center: [formData.longitude, formData.latitude], // (lng, lat)
-            zoom: 12,
+            zoom: 10,
+            attributionControl: false,
+            dragPan: true,
+            scrollZoom: true,
+            boxZoom: false,
+            dragRotate: false,
+            maxBounds: [
+                [-180, -85],  // Southwest coordinates
+                [180, 85],    // Northeast coordinates
+            ],
         });
 
         // Create marker
@@ -91,7 +95,7 @@ const EditStudent = ({ id, isOpenEditStudent, onCloseEditStudent, updateStudent 
         markerRef.current = marker;
 
         return () => map.remove(); // Cleanup on unmount
-    }, [showMap, formData.latitude, formData.longitude]);
+    }, [formData.latitude, formData.longitude]);
 
     const handleInputChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -119,8 +123,8 @@ const EditStudent = ({ id, isOpenEditStudent, onCloseEditStudent, updateStudent 
             className={`${isOpenEditStudent ? "fixed" : "hidden"
                 } overflow-y-auto overflow-x-hidden fixed inset-0 bg-gray-600 bg-opacity-50 z-50  h-full w-full flex items-center justify-center`}
         >
-            <div className="bg-white rounded-lg shadow-xl p-6 w-[990px] h-[683px] relative z-50 max-h-[90vh] overflow-y-auto">
-                <div className=" sm:rounded-lg  flex flex-col justify-center py-7">
+            <div className="bg-white rounded-lg shadow-xl p-6 w-[990px] h-[777px] relative z-50 max-h-[90vh] overflow-y-auto">
+                <div className=" sm:rounded-lg  flex flex-col justify-center py-5 p-5">
                     {/* <div className="flex min-h-full flex-1 flex-col justify-center px-4 py-8 lg:py-12"> */}
                     <Link href="" onClick={onCloseEditStudent} className={style.link}>
                         <div className='flex'>
@@ -132,7 +136,7 @@ const EditStudent = ({ id, isOpenEditStudent, onCloseEditStudent, updateStudent 
                             </div>
                         </div>
                     </Link>
-                    <div className="py-8 px-10">
+                    <div className="py-8">
                         <h2 className={style.title}>
                             Edit
                         </h2>
@@ -140,8 +144,146 @@ const EditStudent = ({ id, isOpenEditStudent, onCloseEditStudent, updateStudent 
                             Edit the student's details, including name and home address
                         </div>
                     </div>
-                    < form onSubmit={handleUpdate} className="grid grid-cols-6 gap-6 px-10">
-                        <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
+                    < form onSubmit={handleUpdate} className='mt-3'>
+                        <div className='grid lg:grid-cols-2 gap-4 sm:grid-cols-1'>
+                            <div>
+                                <div className='grid grid-cols-2 gap-4'>
+                                    <div className={`${style.text_email} `}>
+                                        <label htmlFor="first_name" >
+                                            First Name
+                                        </label>
+                                        <div className={style.input_placeholder_email}>
+                                            <input
+                                                type="text"
+                                                name="first_name"
+                                                value={formData?.first_name || ''}
+                                                onChange={handleInputChange}
+                                                className={style.input_email}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className={`${style.text_email}`}>
+                                        <label htmlFor="last_name" >
+                                            Last Name
+                                        </label>
+                                        <div className={style.input_placeholder_email}>
+                                            <input
+                                                type="text"
+                                                name="last_name"
+                                                value={formData?.last_name || ''}
+                                                onChange={handleInputChange}
+                                                className={style.input_email}
+                                            />
+                                        </div>
+                                    </div>
+
+
+                                    <div className={`${style.text_email}`}>
+                                        <label htmlFor="age" >
+                                            Age
+                                        </label>
+                                        <div className={style.input_placeholder_email}>
+                                            <input
+                                                type="text"
+                                                name="age"
+                                                value={formData?.age || ''}
+                                                onChange={handleInputChange}
+                                                className={style.input_email}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className={`${style.text_email} `}>
+                                        <label htmlFor="gender">
+                                            Gender
+                                        </label>
+                                        <select
+                                            name="gender"
+                                            className={`${style.select} block`}
+                                            value={formData?.gender || ''} // Default to an empty string if no value is set
+                                            onChange={handleInputChange}
+                                        >
+                                            <option value="">Select gender</option> {/* Use an empty value for the default option */}
+                                            <option value="Male">Male</option>
+                                            <option value="Female">Female</option> {/* Ensure consistent casing */}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div className={`${style.text_email} mt-4`}>
+                                    <label htmlFor="address" >
+                                        Home Address
+                                    </label>
+                                    <div className={style.input_placeholder_email}>
+                                        <input
+                                            type="text"
+                                            name="address"
+                                            className={style.input_email}
+                                            value={formData?.address || ''}
+                                            onChange={handleInputChange}
+                                        />
+                                    </div>
+                                </div>
+                                <div className={`${style.text_email} mt-4`}>
+                                    <label htmlFor="status" >
+                                        Status
+                                    </label>
+                                    <select
+                                        name="status"
+                                        className={`${style.select} block`}
+                                        value={formData?.status || ''}
+                                        onChange={handleInputChange}
+                                    >
+                                        <option value="">Select status</option>
+                                        <option value="0">Cancelled</option>
+                                        <option value="1">Confirmed</option>
+                                    </select>
+                                </div>
+
+                                <div className='grid grid-cols-2 gap-4 mt-4'>
+                                    <div className={`${style.text_email}`}>
+                                        <label htmlFor="latitude" >
+                                            Latitude
+                                        </label>
+                                        <div className={style.input_placeholder_email}>
+                                            <input
+
+                                                type="text"
+                                                name="latitude"
+                                                // onClick={() => setShowMap(true)}
+                                                value={formData?.latitude || ''}
+                                                onChange={handleInputChange}
+                                                className={style.input_email}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className={`${style.text_email} `}>
+                                        <label htmlFor="longitude" >
+                                            Longitude
+                                        </label>
+                                        <div className={style.input_placeholder_email}>
+                                            <input
+                                                type="text"
+                                                name="longitude"
+                                                value={formData?.longitude || ''}
+                                                onChange={handleInputChange}
+                                                className={style.input_email}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <div className="cols-2">
+                                <div
+                                        ref={mapContainerRef}
+                                        style={{ width: "100%", height: "405px" }}
+                                    ></div>
+                                </div>
+                            </div>
+                        </div>
+                        {/* <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
                             <label htmlFor="first_name" >
                                 First Name
                             </label>
@@ -154,9 +296,9 @@ const EditStudent = ({ id, isOpenEditStudent, onCloseEditStudent, updateStudent 
                                     className={style.input_email}
                                 />
                             </div>
-                        </div>
+                        </div> */}
 
-                        <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
+                        {/* <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
                             <label htmlFor="last_name" >
                                 Last Name
                             </label>
@@ -169,8 +311,8 @@ const EditStudent = ({ id, isOpenEditStudent, onCloseEditStudent, updateStudent 
                                     className={style.input_email}
                                 />
                             </div>
-                        </div>
-
+                        </div> */}
+                        {/* 
                         <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
                             <label htmlFor="age" >
                                 Age
@@ -184,9 +326,9 @@ const EditStudent = ({ id, isOpenEditStudent, onCloseEditStudent, updateStudent 
                                     className={style.input_email}
                                 />
                             </div>
-                        </div>
+                        </div> */}
 
-                        <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
+                        {/* <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
                             <label htmlFor="gender">
                                 Gender
                             </label>
@@ -196,14 +338,14 @@ const EditStudent = ({ id, isOpenEditStudent, onCloseEditStudent, updateStudent 
                                 value={formData?.gender || ''} // Default to an empty string if no value is set
                                 onChange={handleInputChange}
                             >
-                                <option value="">Select gender</option> {/* Use an empty value for the default option */}
+                                <option value="">Select gender</option> 
                                 <option value="Male">Male</option>
-                                <option value="Female">Female</option> {/* Ensure consistent casing */}
+                                <option value="Female">Female</option> 
                             </select>
-                        </div>
+                        </div> */}
 
 
-                        <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
+                        {/* <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
                             <label htmlFor="address" >
                                 Home Address
                             </label>
@@ -216,8 +358,8 @@ const EditStudent = ({ id, isOpenEditStudent, onCloseEditStudent, updateStudent 
                                     onChange={handleInputChange}
                                 />
                             </div>
-                        </div>
-
+                        </div> */}
+                        {/* 
                         <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
                             <label htmlFor="status" >
                                 Status
@@ -229,12 +371,12 @@ const EditStudent = ({ id, isOpenEditStudent, onCloseEditStudent, updateStudent 
                                 onChange={handleInputChange}
                             >
                                 <option value="">Select status</option>
-                                <option value="0">0</option>
-                                <option value="1">1</option>
+                                <option value="0">Cancelled</option>
+                                <option value="1">Confirmed</option>
                             </select>
-                        </div>
+                        </div> */}
 
-                        <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
+                        {/* <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
                             <label htmlFor="latitude" >
                                 Latitude
                             </label>
@@ -249,9 +391,9 @@ const EditStudent = ({ id, isOpenEditStudent, onCloseEditStudent, updateStudent 
                                     className={style.input_email}
                                 />
                             </div>
-                        </div>
+                        </div> */}
 
-                        <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
+                        {/* <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
                             <label htmlFor="longitude" >
                                 Longitude
                             </label>
@@ -264,8 +406,8 @@ const EditStudent = ({ id, isOpenEditStudent, onCloseEditStudent, updateStudent 
                                     className={style.input_email}
                                 />
                             </div>
-                        </div>
-                        {showMap && (
+                        </div> */}
+                        {/* {showMap && (
                             <div className={` ${style.modal_overlay} `}>
                                 <div className={`${style.modal_content} overflow-x-auto`}>
                                     <button onClick={() => setShowMap(false)} type="button" className="bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white">
@@ -277,9 +419,9 @@ const EditStudent = ({ id, isOpenEditStudent, onCloseEditStudent, updateStudent 
                                     <div ref={mapContainerRef} style={{ width: "100%", height: "200px", marginTop: "10px" }}></div>
                                 </div>
                             </div>
-                        )}
+                        )} */}
 
-                        <div className="col-span-6 justify-end sm:flex sm:items-center sm:gap-4">
+                        <div className="col-6 justify-end sm:flex sm:items-center sm:gap-4 py-8">
                             <button
                                 type="submit"
                                 className={style.btn_add}

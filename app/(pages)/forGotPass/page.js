@@ -17,7 +17,7 @@ export default function ForgotPassword() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const auth = getAuth(app);
     const [user, setUser] = useState(null);
-    const [emailForPasswordReset, setEmailForPasswordReset] = useState(""); 
+    const [emailForPasswordReset, setEmailForPasswordReset] = useState("");
 
     const openModal = () => setIsModalOpen(true);
     const closeModal = () => setIsModalOpen(false);
@@ -38,7 +38,10 @@ export default function ForgotPassword() {
             // alert("Password reset email sent! Please check your inbox.");
             // openModal(true)
             showAlert('Reset successfully!')
-            
+            setTimeout(() => {
+                router.push("/");
+            },2000)
+
             // setShowPopupReset(false); // Close the modal after sending the reset email
         } catch (error) {
             alert("Error sending password reset email: " + error.message);

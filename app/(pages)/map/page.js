@@ -202,22 +202,13 @@ export default function Sidebar() {
                 onClick={toggleSidebar}
                 aria-controls="logo-sidebar"
                 type="button"
-                className="fixed top-4 left-4 z-40 inline-flex items-center p-3 text-sm text-gray-500 bg-white rounded-2xl"
+                className="fixed top-4 left-4 z-40 inline-flex items-center p-2 text-gray-500 bg-white rounded-lg"
             >
                 {/* <span className="sr-only">Open sidebar</span> */}
-                <svg
-                    className="w-6 h-6"
-                    aria-hidden="true"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                    xmlns="http://www.w3.org/2000/svg"
-                >
-                    <path
-                        clipRule="evenodd"
-                        fillRule="evenodd"
-                        d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"
-                    ></path>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="size-7">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                 </svg>
+
             </button>
 
 

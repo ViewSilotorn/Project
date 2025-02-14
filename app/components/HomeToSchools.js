@@ -6,12 +6,12 @@ import { fetchStudents } from '../services/studentService';
 import { subscribeAuthState } from "../services/authService";
 import FindingOverlay from '../modals/FindingOverlay'
 import St from '../css/student.module.css';
+import configService from '../services/configService';
+// const host = process.env.NEXT_PUBLIC_API_HOST;
+// const port = process.env.NEXT_PUBLIC_API_PORT;
 
-const host = process.env.NEXT_PUBLIC_API_HOST;
-const port = process.env.NEXT_PUBLIC_API_PORT;
-
-// สร้าง base URL
-const apiBaseUrl = `${host}:${port}`;
+// // สร้าง base URL
+// const apiBaseUrl = `${host}:${port}`;
 
 export default function HomeToSchoolSidebar({ isOpen, openComponent, onClose, mapRef }) {
     if (!isOpen) return null; // ถ้า Sidebar ไม่เปิด ให้คืนค่า null
@@ -118,14 +118,14 @@ export default function HomeToSchoolSidebar({ isOpen, openComponent, onClose, ma
             // If there's a selected filter for status (Confirmed, Cancelled, etc.)
             if (selectedFilter === 'Confirmed') {
                 filterStatus = 'true';
-            } else if (selectedFilter === 'Canceled') {
+            } else if (selectedFilter === 'Cancelled') {
                 filterStatus = 'false';
             }
 
             // Handle search query
             if (searchQuery.trim()) {
                 const response = await fetch(
-                    `${apiBaseUrl}/api/students/search?page=${currentPage}&find=${searchQuery}`,
+                    `${configService.baseURL}/api/students/search?page=${currentPage}&find=${searchQuery}`,
                     {
                         method: 'GET',
                         headers: {
@@ -142,7 +142,7 @@ export default function HomeToSchoolSidebar({ isOpen, openComponent, onClose, ma
             } else if (filterStatus) {
                 // If filter status is set (Confirmed or Cancelled)
                 const response = await fetch(
-                    `${apiBaseUrl}/api/students/status/${filterStatus}/page/${currentPage}`,
+                    `${configService.baseURL}/api/students/status/${filterStatus}/page/${currentPage}`,
                     {
                         method: 'GET',
                         headers: {
@@ -181,7 +181,7 @@ export default function HomeToSchoolSidebar({ isOpen, openComponent, onClose, ma
     //////////////////////////////////Search/////////////////////////////////////
 
     //filter
-    const filters = ["All status", "Confirmed", "Canceled"];
+    const filters = ["All status", "Confirmed", "Cancelled"];
 
     const handleSearchChange = (e) => {
         console.log("Search Query:", e.target.value);  // ตรวจสอบค่าที่พิมพ์
@@ -215,7 +215,7 @@ export default function HomeToSchoolSidebar({ isOpen, openComponent, onClose, ma
             const idToken = await user.getIdToken();
 
             const response = await fetch(
-                `${apiBaseUrl}/api/students/search?page=${currentPage}&find=${searchQuery}`,
+                `${configService.baseURL}/api/students/search?page=${currentPage}&find=${searchQuery}`,
                 {
                     method: 'GET',
                     headers: {

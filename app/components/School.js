@@ -3,6 +3,7 @@ import MapSelect from "../components/MapSelect";
 import { useState, useEffect } from "react";
 import { subscribeAuthState } from "../services/authService"; // Service สำหรับ auth state
 import { fetchSchool, createSchool, updateSchool } from "../services/schoolService"; // Assuming the fetch function is imported here
+import showAlert from '../modals/ShowAlert';
 
 export default function SchoolsPage({ isOpen, onClose, mapRef }) {
     if (!isOpen) return null; // ถ้า Sidebar ไม่เปิด ให้คืนค่า null
@@ -73,13 +74,33 @@ export default function SchoolsPage({ isOpen, onClose, mapRef }) {
                 try {
                     setIsSaveEnabled(false);
                     await createSchool(idToken, dataSchool);
-                    mapRef.current?.refetchData();
+                   showAlert('Save complete!')
+                    // setAlertMessage({
+                    //     type: "success",
+                    //     message: "School Created Successfully!"
+                    // });
+    
+                    // // ตั้งเวลาให้ข้อความแจ้งเตือนหายไปหลังจาก 3 วินาที
+                    // setTimeout(() => {
+                    //     setAlertMessage(null);
+                    // }, 3000);
+
+                    fetchData();
+                    // mapRef.current?.refetchData();
                     return;
                 } catch (error) {
                     console.log(error);
                 }
             }
-            alert("Please fill in all information.");
+            // setAlertMessage({
+            //     type: "warning",
+            //     message: "Please fill in all information!"
+            // });
+          
+            // // ตั้งเวลาให้ข้อความแจ้งเตือนหายไปหลังจาก 3 วินาที
+            // setTimeout(() => {
+            //     setAlertMessage(null);
+            // }, 3000);
             return;
         }
 
@@ -90,14 +111,49 @@ export default function SchoolsPage({ isOpen, onClose, mapRef }) {
         // }
 
         setIsSaveEnabled(false);
-        try {
-            updateSchool(idToken, school.id, school);
-            mapRef.current?.refetchData();
-        } catch (error) {
-            console.error(error);
+        if(school.name !== '' && school.latitude !== '' && school.longitude !== '') {
+            try {
+                await updateSchool(idToken, school.id, school);
+               showAlert('Updated Success!')
+                // รีเฟรชข้อมูล school ใหม่
+                fetchData(); // เรียกใช้ฟังก์ชัน fetchData
+                // mapRef.current?.refetchData();
+                return;
+            } catch (error) {
+                console.error(error);
+            }
         }
+        return;
     };
 
+    const fetchData = async () => {
+        setIsLoadingData(true); // Start loading
+        try {
+            const data = await fetchSchool(idToken); // Fetch the school data
+            if (data && data.length > 0) {
+                const schoolData = data[0]; // Assuming only one school data is returned
+                setSchool({
+                    id: schoolData.id || 0,
+                    name: schoolData.name || "",
+                    latitude: schoolData.latitude || "0", // Default to 0 if not available
+                    longitude: schoolData.longitude || "0", // Default to 0 if not available
+                });
+    
+                // ตั้งค่า initial latitude และ longitude
+                setInitialName(schoolData.name || "")
+                setInitialLatitude(schoolData.latitude || "0"); // Set initial values to 0 if missing
+                setInitialLongitude(schoolData.longitude || "0"); // Set initial values to 0 if missing
+            } else {
+                // If no data returned, default latitude and longitude to 0
+                setSchool({ id: 0, name: "", latitude: "0", longitude: "0" });
+            }
+        } catch (error) {
+            console.error("Error fetching school data:", error);
+        } finally {
+            setIsLoadingData(false); // End loading
+        }
+    };
+    
     const [isOpenMap, setOpenMap] = useState(false); // ตั้งสถานะเริ่มต้นให้เป็น false (แผนที่ปิด)
 
     const openMap = () => {

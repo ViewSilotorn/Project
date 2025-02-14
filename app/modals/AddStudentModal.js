@@ -1,27 +1,31 @@
 "use client";
 import style from '../css/side.module.css';
 import Link from 'next/link';
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { getAuth } from "firebase/auth";
-import { fetchStudents } from "../services/studentService";
 import mapboxgl from "mapbox-gl";
-import Swal from 'sweetalert2';
+import "mapbox-gl/dist/mapbox-gl.css";
 import showAlert from './ShowAlert';
+import { subscribeAuthState } from "../services/authService"; // Service สำหรับ auth state
+import configService from '../services/configService';
+import { fetchMapCenter } from '../services/schoolService';
 
-const host = process.env.NEXT_PUBLIC_API_HOST;
-const port = process.env.NEXT_PUBLIC_API_PORT;
+// const host = process.env.NEXT_PUBLIC_API_HOST;
+// const port = process.env.NEXT_PUBLIC_API_PORT;
 
-// สร้าง base URL
-const apiBaseUrl = `${host}:${port}`;
+// // สร้าง base URL
+// const apiBaseUrl = `${host}:${port}`;
 
-const addStudent = ({ isOpenAddStudent, onCloseAddStudent, onAddStudent }) => {
+const addStudent = ({isOpenAddStudent, onCloseAddStudent, onAddStudent }) => {
     if (!isOpenAddStudent) return null;
+
+    const [schoolLocation, setSchoolLocation] = useState({ id: 0, name: "", latitude: "0", longitude: "0" });
     const [latitude, setLatitude] = useState("");
     const [longitude, setLongitude] = useState("");
     const [map, setMap] = useState(null);
     const mapContainer = useRef(null); // ใช้สำหรับเก็บ ref ของ container สำหรับแผนที่
     const [error, setError] = useState(null);
-
+    const [user, setUser] = useState(null);
     const [formData, setFormData] = useState({
         first_name: "",
         last_name: "",
@@ -32,23 +36,41 @@ const addStudent = ({ isOpenAddStudent, onCloseAddStudent, onAddStudent }) => {
         longitude: "",
         status: "",
     });
-    const [showMap, setShowMap] = useState(false);
+
+    const getSchoolLocation = useCallback(async () => {
+        const [longitude, latitude] = await fetchMapCenter();
+        setSchoolLocation({ latitude, longitude });
+    }, []);
 
     useEffect(() => {
-        if (showMap && mapContainer.current) {
+        getSchoolLocation();
+    }, [getSchoolLocation]);
+
+    useEffect(() => {
+        if (mapContainer.current) {
+            const { latitude, longitude } = schoolLocation;
 
             // ตั้งค่า Mapbox เมื่อ component mount
             mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;// ใส่ Mapbox Access Token ที่คุณได้รับ
             const mapInstance = new mapboxgl.Map({
                 container: mapContainer.current, // ref ของ container
-                style: 'mapbox://styles/mapbox/outdoors-v12', // เลือกสไตล์แผนที่
-                center: [0, 0], // ตั้งค่าตำแหน่งเริ่มต้น
-                zoom: 2, // ตั้งค่าระดับการซูม
+                style: "mapbox://styles/mapbox/light-v10",// เลือกสไตล์แผนที่
+                center: [longitude, latitude], // ตั้งค่าตำแหน่งเริ่มต้น [lng, lat]
+                zoom: 3,
+                attributionControl: false,
+                dragPan: true,
+                scrollZoom: true,
+                boxZoom: false,
+                dragRotate: false,
+                maxBounds: [
+                    [-180, -85],  // Southwest coordinates
+                    [180, 85],    // Northeast coordinates
+                ],
             });
 
             // สร้าง marker ที่สามารถลากได้
             const marker = new mapboxgl.Marker({ draggable: true })
-                .setLngLat([0, 0]) // ตั้งค่าเริ่มต้นที่ตำแหน่ง (Longitude, Latitude)
+                .setLngLat([longitude, latitude]) // ตั้งค่าเริ่มต้นที่ตำแหน่ง (Longitude, Latitude)
                 .addTo(mapInstance);
 
             // เมื่อ marker ถูกลาก, จะอัพเดทค่าพิกัดในฟอร์ม
@@ -63,7 +85,7 @@ const addStudent = ({ isOpenAddStudent, onCloseAddStudent, onAddStudent }) => {
             // Clean up เมื่อ component ถูก unmount
             return () => mapInstance.remove();
         }
-    }, [showMap]);
+    }, []);
 
 
     const handleInputChange = (e, isFromMap = false) => {
@@ -98,7 +120,7 @@ const addStudent = ({ isOpenAddStudent, onCloseAddStudent, onAddStudent }) => {
             const idToken = await user.getIdToken();
             console.log("JWT Token:", idToken);
 
-            const response = await fetch(`${apiBaseUrl}/api/students`, {
+            const response = await fetch(`${configService.baseURL}/api/students`, {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${idToken}`,
@@ -152,8 +174,8 @@ const addStudent = ({ isOpenAddStudent, onCloseAddStudent, onAddStudent }) => {
             className={`${isOpenAddStudent ? "fixed" : "hidden"
                 } overflow-y-auto overflow-x-hidden fixed inset-0 bg-gray-600 bg-opacity-50 z-50  h-full w-full flex items-center justify-center`}
         >
-            <div className="bg-white rounded-lg shadow-xl p-6 w-[990px] h-[695px] relative z-50 max-h-[90vh] overflow-y-auto">
-                <div className=" sm:rounded-lg  flex flex-col justify-center py-9">
+            <div className="bg-white rounded-lg shadow-xl p-6 w-[990px] h-[777px] relative z-50 max-h-[90vh] overflow-y-auto">
+                <div className=" sm:rounded-lg  flex flex-col justify-center py-5 p-5">
                     {/* <div className="flex min-h-full flex-1 flex-col justify-center px-4 py-8 lg:py-12"> */}
                     <Link href="" onClick={onCloseAddStudent} className={style.link}>
                         <div className='flex'>
@@ -165,182 +187,192 @@ const addStudent = ({ isOpenAddStudent, onCloseAddStudent, onAddStudent }) => {
                             </div>
                         </div>
                     </Link>
-                    <div className="py-8 px-10">
+                    <div className="py-8">
                         <h2 className={style.title}>
-                            Add Student
+                            Add New Student
                         </h2>
                         <div className={style.p}>
                             Fill out the form below to add a new student to the system.
                         </div>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="grid grid-cols-6 gap-6 px-10">
-                        <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
-                            <label htmlFor="first_name" >
-                                First Name
-                            </label>
-                            <div className={style.input_placeholder_email}>
-                                <input
-                                    type="text"
-                                    id="FirstName"
-                                    name="first_name"
-                                    onChange={handleInputChange}
-                                    className={style.input_email}
-                                    required
-                                />
+
+                    {/* <div className="grid grid-flow-col grid-rows-3 gap-4"> */}
+                    <form onSubmit={handleSubmit} className='mt-3'>
+                        <div className='grid lg:grid-cols-2 gap-4 sm:grid-cols-1'>
+                            <div >
+                                <div className='grid grid-cols-2 gap-4'>
+                                    <div className={`${style.text_email}`}>
+                                        <label htmlFor="first_name" >
+                                            First Name
+                                        </label>
+                                        <div className={style.input_placeholder_email}>
+                                            <input
+                                                type="text"
+                                                id="FirstName"
+                                                name="first_name"
+                                                onChange={handleInputChange}
+                                                className={style.input_email}
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className={`${style.text_email} col2-start`}>
+                                        <label htmlFor="LastName" >
+                                            Last Name
+                                        </label>
+                                        <div className={style.input_placeholder_email}>
+                                            <input
+                                                type="text"
+                                                id="LastName"
+                                                name="last_name"
+                                                onChange={handleInputChange}
+                                                className={style.input_email}
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className={`${style.text_email} `}>
+                                        <label htmlFor="Age" >
+                                            Age
+                                        </label>
+                                        <div className={style.input_placeholder_email}>
+                                            <input
+                                                type="text"
+                                                id="Age"
+                                                name="age"
+                                                onChange={handleInputChange}
+                                                className={style.input_email}
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className={`${style.text_email} `}>
+                                        <label htmlFor="Gender" >
+                                            Gender
+                                        </label>
+                                        <select
+                                            id="Gender"
+                                            name="gender"
+                                            className={`${style.select}`}
+                                            onChange={handleInputChange}
+                                            required
+                                        >
+                                            <option value="">Select gender</option>
+                                            <option value="Male">Male</option>
+                                            <option value="Female">Female</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+
+
+                                <div className={`${style.text_email} mt-4`}>
+                                    <label htmlFor="HomeAddress" >
+                                        Home Address
+                                    </label>
+                                    <div className={style.input_placeholder_email}>
+                                        <input
+                                            type="text"
+                                            id="HomeAddress"
+                                            name="address"
+                                            onChange={handleInputChange}
+                                            className={style.input_email}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className={`${style.text_email} mt-4`}>
+                                    <label htmlFor="Status" >
+                                        Status
+                                    </label>
+                                    <select
+                                        id="status"
+                                        name="status"
+                                        className={`${style.select} block p-1`}
+                                        onChange={handleInputChange}
+                                        required
+                                    >
+                                        <option value="">Select status</option>
+                                        <option value="0">Cancelled</option>
+                                        <option value="1">Confirmed</option>
+                                    </select>
+                                </div>
+
+                                <div className='grid grid-cols-2 gap-4 mt-4'>
+                                    <div className={`${style.text_email} `}>
+                                        <label htmlFor="Latitude">Latitude</label>
+                                        <div className={style.input_placeholder_email}>
+                                            <input
+                                                type="text"
+                                                id="Latitude"
+                                                name="latitude"
+                                                // onClick={() => setShowMap(!showMap)}
+
+                                                value={formData.latitude || ""}
+                                                onChange={handleInputChange}
+                                                readOnly
+                                                className={style.input_email}
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className={`${style.text_email} `}>
+                                        <label htmlFor="Longitude">Longitude</label>
+                                        <div className={style.input_placeholder_email}>
+                                            <input
+                                                type="text"
+                                                id="Longitude"
+                                                name="longitude"
+                                                value={formData.longitude || ""}
+                                                onChange={handleInputChange}
+                                                readOnly
+                                                className={style.input_email}
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
 
-                        <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
-                            <label htmlFor="LastName" >
-                                Last Name
-                            </label>
-                            <div className={style.input_placeholder_email}>
-                                <input
-                                    type="text"
-                                    id="LastName"
-                                    name="last_name"
-                                    onChange={handleInputChange}
-                                    className={style.input_email}
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
-                            <label htmlFor="Age" >
-                                Age
-                            </label>
-                            <div className={style.input_placeholder_email}>
-                                <input
-                                    type="text"
-                                    id="Age"
-                                    name="age"
-                                    onChange={handleInputChange}
-                                    className={style.input_email}
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
-                            <label htmlFor="Gender" >
-                                Gender
-                            </label>
-                            <select
-                                id="Gender"
-                                name="gender"
-                                className={`${style.select} block`}
-                                onChange={handleInputChange}
-                                required
-                            >
-                                <option value="">Select gender</option>
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
-                            </select>
-                        </div>
-
-                        <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
-                            <label htmlFor="HomeAddress" >
-                                Home Address
-                            </label>
-                            <div className={style.input_placeholder_email}>
-                                <input
-                                    type="text"
-                                    id="HomeAddress"
-                                    name="address"
-                                    onChange={handleInputChange}
-                                    className={style.input_email}
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
-                            <label htmlFor="Status" >
-                                Status
-                            </label>
-                            <select
-                                id="status"
-                                name="status"
-                                className={`${style.select} block`}
-                                onChange={handleInputChange}
-                                required
-                            >
-                                <option value="">Select status</option>
-                                <option value="0">Canceled</option>
-                                <option value="1">Confirmed</option>
-                            </select>
-                        </div>
-
-                        <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
-                            <label htmlFor="Latitude">Latitude</label>
-                            <div className={style.input_placeholder_email}>
-                                <input
-                                    type="text"
-                                    id="Latitude"
-                                    name="latitude"
-                                    onClick={() => setShowMap(true)}
-                                    value={formData.latitude || ""}
-                                    onChange={handleInputChange}
-                                    readOnly
-                                    className={style.input_email}
-                                    required
-                                />
-                            </div>
-                        </div>
-
-
-                        <div className={`${style.text_email} col-span-6 sm:col-span-3`}>
-                            <label htmlFor="Longitude">Longitude</label>
-                            <div className={style.input_placeholder_email}>
-                                <input
-                                    type="text"
-                                    id="Longitude"
-                                    name="longitude"
-                                    value={formData.longitude || ""}
-                                    onChange={handleInputChange}
-                                    readOnly
-                                    className={style.input_email}
-                                    required
-                                />
-                            </div>
-                        </div>
-                        {/* <div
-                            ref={mapContainer}
-                            style={{ width: "500px", height: "200px", border: "1px solid #ccc" }}
-                        ></div> */}
-
-                        {showMap && (
-                            <div className={` ${style.modal_overlay} `}>
-                                <div className={`${style.modal_content} overflow-x-auto`}>
-                                    <button onClick={() => setShowMap(false)} type="button" className="bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                                        </svg>
-                                        <span className="sr-only">Close modal</span>
-                                    </button>
+                            <div>
+                                <div className="cols-2">
                                     <div
                                         ref={mapContainer}
-                                        style={{ width: "100%", height: "200px", marginTop: "10px" }}
+                                        style={{ width: "100%", height: "400px" }}
                                     ></div>
                                 </div>
                             </div>
-                        )}
+                        </div>
 
-                        <div className="col-span-6 justify-end sm:flex sm:items-center sm:gap-4">
+
+
+                        {/* {showMap && (
+                                <div className="absolute w-[px] h-[120px] bg-white border rounded shadow-lg z-50">
+                                    <div className="w-[600px] h-[120px]  border rounded-lg" ref={mapContainer} />
+                                </div>
+                            )} */}
+
+
+                        <div className="cols-6 justify-end sm:flex sm:items-center sm:gap-4 py-8">
                             <button
                                 type="submit"
                                 className={style.btn_add}
                             >
-                                Add Student
+                                Submit
                             </button>
                         </div>
+
                     </form>
-                    {/* </div> */}
                 </div>
+                {/* </div> */}
             </div>
-        </div>
+        </div >
     );
 };
 

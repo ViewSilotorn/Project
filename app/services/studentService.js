@@ -1,10 +1,12 @@
 import { getAuth } from "firebase/auth";
 
-const host = process.env.NEXT_PUBLIC_API_HOST;
-const port = process.env.NEXT_PUBLIC_API_PORT;
+// const host = process.env.NEXT_PUBLIC_API_HOST;
+// const port = process.env.NEXT_PUBLIC_API_PORT;
 
-// สร้าง base URL
-const apiBaseUrl = `${host}:${port}`;
+// // สร้าง base URL
+// const apiBaseUrl = `${host}:${port}`;
+
+import configService from "../services/configService";
 
 //get students
 export const fetchStudents = async (currentPage) => {
@@ -17,7 +19,7 @@ export const fetchStudents = async (currentPage) => {
         const idToken = await user.getIdToken();
         // console.log("JWT Token:", idToken);
 
-        const response = await fetch(`${apiBaseUrl}/api/students/page/${currentPage}`, {
+        const response = await fetch(`${configService.baseURL}/api/students/page/${currentPage}`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${idToken}`,
@@ -39,7 +41,7 @@ export const fetchStudents = async (currentPage) => {
 export const fetchStudentBatchData = async (idToken, coordinates) => {
     try {
       // สร้าง URL
-      const url = `${apiBaseUrl}/api/students/lnglat/batch`;
+      const url = `${configService.baseURL}/api/students/lnglat/batch`;
   
       // เรียก API ด้วย fetch
       const response = await fetch(url, {
@@ -75,7 +77,7 @@ export const createBatchStudents = async (students) => {
 
     const idToken = await user.getIdToken();
     try {
-      const response = await fetch(`${apiBaseUrl}/api/students/batch`, {
+      const response = await fetch(`${configService.baseURL}/api/students/batch`, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${idToken}`,
@@ -103,7 +105,7 @@ export const getStudentById = async (id) => {
         if (!user) throw new Error("User is not logged in");
 
         const idToken = await user.getIdToken();
-        const response = await fetch(`${apiBaseUrl}/api/students/${id}`, {
+        const response = await fetch(`${configService.baseURL}/api/students/${id}`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${idToken}`, // Add Authorization header
@@ -132,7 +134,7 @@ export const updateDataById = async (id, formData) => {
     if (!user) throw new Error("User is not logged in");
 
     const idToken = await user.getIdToken();
-    const response = await fetch(`${apiBaseUrl}/api/students/${id}`, {
+    const response = await fetch(`${configService.baseURL}/api/students/${id}`, {
         method: 'PUT',
         headers: {
             'Authorization': `Bearer ${idToken}`,
@@ -156,7 +158,7 @@ export const deleteStudents = async (id) => {
         if (!user) throw new Error("User is not logged in");
 
         const idToken = await user.getIdToken();
-        const response = await fetch(`${apiBaseUrl}/api/students/${id}`, {
+        const response = await fetch(`${configService.baseURL}/api/students/${id}`, {
             method: "DELETE",
             headers: {
                 'Authorization': `Bearer ${idToken}`,
@@ -185,7 +187,7 @@ export const batchDeleteStudents = async (ids) => {
         if (!user) throw new Error("User is not logged in");
 
         const idToken = await user.getIdToken();
-        const response = await fetch(`${apiBaseUrl}/api/students/batch-delete`, {
+        const response = await fetch(`${configService.baseURL}/api/students/batch-delete`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${idToken}`,

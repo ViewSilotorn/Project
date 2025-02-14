@@ -1,9 +1,10 @@
 import { getAuth } from "firebase/auth";
-const host = process.env.NEXT_PUBLIC_API_HOST;
-const port = process.env.NEXT_PUBLIC_API_PORT;
+// const host = process.env.NEXT_PUBLIC_API_HOST;
+// const port = process.env.NEXT_PUBLIC_API_PORT;
 
-// สร้าง base URL
-const apiBaseUrl = `${host}:${port}`;
+// // สร้าง base URL
+// const apiBaseUrl = `${host}:${port}`;
+import configService from "./configService";
 
 const fetchTrips = async () => {
     
@@ -17,7 +18,7 @@ const fetchTrips = async () => {
         const idToken = await user.getIdToken();
         console.log("JWT Token:", idToken);
 
-        const res = await fetch(`${apiBaseUrl}/api/trips`, {
+        const res = await fetch(`${configService.baseURL}/api/trips`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${idToken}`,
@@ -41,7 +42,7 @@ const fetchTrips = async () => {
 // ฟังก์ชันสำหรับบันทึก Trip
 const saveTrip = async (idToken, tripData) => {
     try {
-      const response = await fetch(`${apiBaseUrl}/api/trips/save`, {
+      const response = await fetch(`${configService.baseURL}/api/trips/save`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -61,37 +62,12 @@ const saveTrip = async (idToken, tripData) => {
       console.error("Error saving trip:", error);
       throw error;
     }
-  };
-  
-  
-  const deleteTrip = async (idToken, tripId) => {
-    try {
-      const response = await fetch(`${apiBaseUrl}/api/trips/${tripId}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`
-        }
-      });
-  
-      if (!response.ok) {
-        throw new Error(`Failed to delete trip: ${response.statusText}`);
-      }
-  
-      const data = await response.json();
-      console.log("Trip deleted successfully:", data);
-      return data;
-    } catch (error) {
-      console.error("Error deleting trip:", error);
-      throw error;
-    }
-  };
-  
+  }; 
   
   
   const deleteTripService = async (idToken, tripId) => {
     try {
-      const response = await fetch(`${apiBaseUrl}/api/trips/${tripId}`, {
+      const response = await fetch(`${configService.baseURL}/api/trips/${tripId}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -113,5 +89,5 @@ const saveTrip = async (idToken, tripData) => {
   
   
   
-  export { fetchTrips, saveTrip, deleteTrip, deleteTripService };
+  export { fetchTrips, saveTrip, deleteTripService };
   

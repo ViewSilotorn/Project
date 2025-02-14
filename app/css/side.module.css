@@ -74,12 +74,12 @@
 
 .p {
     /* UI Properties */
-    font: var(--unnamed-font-style-normal) normal var(--unnamed-font-weight-normal) var(--unnamed-font-size-16)/var(--unnamed-line-spacing-21) var(--unnamed-font-family-roboto);
-    letter-spacing: var(--unnamed-character-spacing-0-53);
+    font: var(--unnamed-font-style-normal) normal var(--unnamed-font-weight-normal) var(--unnamed-font-size-16)/var(--unnamed-line-spacing-19) var(--unnamed-font-family-roboto);
+    letter-spacing: var(--unnamed-character-spacing-0);
     color: var(--unnamed-color-1a1a1a);
     text-align: left;
-    font: normal normal normal 13.5px/21px Roboto;
-    letter-spacing: 0.53px;
+    font: normal normal normal 16px/19px Roboto;
+    letter-spacing: 0px;
     color: #1A1A1A;
     opacity: 1;
 }
@@ -205,7 +205,7 @@
     background: #FFFFFF 0% 0% no-repeat padding-box;
     border: 1px solid #C7C5C5;
     border-radius: 4px;
-    margin-top: 1%;
+    margin-top: 2%;
     outline: none;
     opacity: 1;
 }
@@ -220,16 +220,16 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
+    /* background-color: rgba(0, 0, 0, 0.5); */
     /* พื้นหลังมืด */
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 10;
+    z-index: 10; 
 }
 
 .modal_content {
-    background-color: white;
+    /* background-color: white; */
     padding: 10px;
     border-radius: 8px;
     text-align: right;

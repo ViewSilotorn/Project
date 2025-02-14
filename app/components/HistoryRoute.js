@@ -4,9 +4,7 @@ import ModalDelete from "../modals/ModalDelete";
 import { useEffect, useState } from "react";
 import { fetchTrips, deleteTripService } from '../services/tripService';
 import { subscribeAuthState } from "../services/authService";
-import { findingRouteByTripId } from "../services/mapboxService"
 import FindingOverlay from '../modals/FindingOverlay'
-import Swal from 'sweetalert2';
 import showAlert from '../modals/ShowAlert';
 
 export default function HistoryRouteSidebar({ isOpen, onClose, openComponent, mapRef }) {
@@ -177,41 +175,52 @@ export default function HistoryRouteSidebar({ isOpen, onClose, openComponent, ma
           ))} */}
         {routes.map((route, index) => (
           <div key={index} onClick={() => findingRouteByTripId(route.id)} className={`${styles.card} flex w-full my-1 p-4 max-w-lg flex-col rounded-lg bg-white shadow-sm hover:bg-gray-100`}>
-            <div className="">
-              <div className="mt-1 flex items-center justify-between">
-                <h3 className={styles.text_school}>{route.school}</h3>
-              </div>
-              <div className="mt-2 flex items-center justify-between">
-                <h3 className={styles.date}>
-                  {new Intl.DateTimeFormat('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: true,
-                  }).format(new Date(route.dataTime))}
-                </h3>
-                {/* <p className={`${styles.student} mt-1 max-w-2xl`}>
+            <div className="mt-1 flex items-center justify-between">
+              <h3 className={styles.text_school}>{route.school}</h3>
+            </div>
+            <div className="mt-2 flex items-center justify-between">
+              <h3 className={styles.date}>
+                {new Intl.DateTimeFormat('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: true,
+                }).format(new Date(route.dataTime))}
+              </h3>
+              {/* <p className={`${styles.student} mt-1 max-w-2xl`}>
                   Students: {route.students}
                 </p> */}
-                <a
-                  className={styles.delete}
-                  onClick={() => openModalDelete(route.id)}
-                >
-                  delete
-                </a>
-              </div>
-              <div className="mt-2 flex items-center justify-between">
-                <p className={styles.type}>
-                  Type:{" "}
-                  <span >
-                    {route.types}
-                  </span>
-                </p>
-              </div>
+              <a
+                className={styles.delete}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  openModalDelete(route.id);
+                }}
+              >
+                delete
+              </a>
             </div>
-            <ModalDelete isOpen={isModalDeleteOpen} onClose={closeModalDelete} type='deleteHistory' onConfirm={() => confirmDelete(route.id)}></ModalDelete>
+            <div className="mt-2 flex items-center justify-between">
+              <p className={styles.type}>
+                Type:{" "}
+                <span >
+                  {route.types}
+                </span>
+              </p>
+            </div>
+            <ModalDelete isOpen={isModalDeleteOpen}
+              onClose={(event) => {
+                event.stopPropagation(); // ป้องกันการคลิกปิดแล้วไป trigger การคลิกของ card
+                closeModalDelete();
+              }}
+              type='deleteHistory'
+              onConfirm={(event) => {
+                event.stopPropagation();
+                confirmDelete(route.id);
+              }}>
+            </ModalDelete>
           </div>
         ))}
       </div>

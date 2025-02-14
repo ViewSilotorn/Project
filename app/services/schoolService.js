@@ -1,12 +1,20 @@
-const host = process.env.NEXT_PUBLIC_API_HOST;
-const port = process.env.NEXT_PUBLIC_API_PORT;
+// const host = process.env.NEXT_PUBLIC_API_HOST;
+// const port = process.env.NEXT_PUBLIC_API_PORT;
 
-// สร้าง base URL
-const apiBaseUrl = `${host}:${port}`;
+// // สร้าง base URL
+// const apiBaseUrl = `${host}:${port}`;
+import { getAuth } from "firebase/auth";
+import configService from "./configService";
 
-const fetchMapCenter = async (idToken) => {
+const fetchMapCenter = async () => {
   try {
-    const response = await fetch(`${apiBaseUrl}/api/schools`, {
+      const auth = getAuth();
+            const user = auth.currentUser;
+    
+            if (!user) throw new Error("User is not logged in");
+    
+            const idToken = await user.getIdToken();
+    const response = await fetch(`${configService.baseURL}/api/schools`, {
       headers: {
         'Authorization': `Bearer ${idToken}`, // ส่ง token ใน headers
         'Content-Type': 'application/json',
@@ -34,7 +42,7 @@ const fetchMapCenter = async (idToken) => {
 
 const fetchSchool = async (idToken) => {
   try {
-    const response = await fetch(`${apiBaseUrl}/api/schools`, {
+    const response = await fetch(`${configService.baseURL}/api/schools`, {
       headers: {
         'Authorization': `Bearer ${idToken}`, // ส่ง token ใน headers
         'Content-Type': 'application/json',
@@ -56,7 +64,7 @@ const fetchSchool = async (idToken) => {
 // ฟังก์ชันสำหรับบันทึก Trip
 const createSchool = async (idToken, dataSchool) => {
   try {
-    const response = await fetch(`${apiBaseUrl}/api/schools`, {
+    const response = await fetch(`${configService.baseURL}/api/schools`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -81,7 +89,7 @@ const createSchool = async (idToken, dataSchool) => {
 
 const updateSchool = async (idToken, schoolId, schoolData) => {
   try {
-    const response = await fetch(`${apiBaseUrl}/api/schools/${schoolId}`, {
+    const response = await fetch(`${configService.baseURL}/api/schools/${schoolId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
