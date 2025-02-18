@@ -42,7 +42,7 @@
 }
 
 .number_input {
-    width: 100%;
+    width: 120px;
     height: 40px;
     /* UI Properties */
     background: var(--unnamed-color-ffffff) 0% 0% no-repeat padding-box;

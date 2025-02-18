@@ -88,6 +88,7 @@ export default function HistoryRouteSidebar({ isOpen, onClose, openComponent, ma
 
   const [isLoading, setIsLoading] = useState();
   const typePage = "history"
+  const route_type = "home"
 
   const findingRouteByTripId = async (trips_id) => {
     try {
@@ -103,7 +104,7 @@ export default function HistoryRouteSidebar({ isOpen, onClose, openComponent, ma
           trips_id
         );
         // openComponent("Route");
-        openComponent("Route", { routes, routeColors, routeDistance, routeDuration, Didu, typePage });
+        openComponent("Route", { routes, routeColors, routeDistance, routeDuration, Didu, typePage, route_type});
       }
 
     } catch (error) {

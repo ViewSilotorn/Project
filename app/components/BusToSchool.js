@@ -4,18 +4,22 @@ import styles from '../css/BusStop.module.css';
 import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 import { fetchStudentAll } from "../services/studentService";
 
-export default function BusToSchoolSidebar({ isOpen, onClose, mapRef, mapElements, onRadiusValuesChange }) {
+export default function BusToSchoolSidebar({ isOpen, onClose, mapRef, mapElements, onRadiusValuesChange, openComponent }) {
 
   if (!isOpen) return null; // ถ้า Sidebar ไม่เปิด ให้คืนค่า null
 
   const [numVehicles, setNumVehicles] = useState(10);
-  const [maxStopsPerVehicle, setMaxStopsPerVehicle] = useState(24);
+  const [maxStopsPerVehicle, setMaxStopsPerVehicle] = useState(20);
   const [maxTravelTime, setMaxTravelTime] = useState(100);
 
   const [openDropdown, setOpenDropdown] = useState(false);
 
-  const toggleDropdown = () => {
-    setOpenDropdown(!openDropdown);
+  // const toggleDropdown = () => {
+  //   setOpenDropdown(!openDropdown);
+  // };
+
+  const toggleDropdown = (id) => {
+    setOpenDropdown((prev) => (prev === id ? null : id));
   };
 
   const elements = mapElements || [];
@@ -33,23 +37,6 @@ export default function BusToSchoolSidebar({ isOpen, onClose, mapRef, mapElement
     { id: 10, name: "John Doe", email: "johndoe@gmail.com", phone: "555-555-5555", isActive: true },
   ]);
 
-  // toggleStatus (สลับ Active/Inactive)
-  // const toggleStatus = (index) => {
-  //   setRows((prevRows) => {
-  //     const updated = [...prevRows];
-  //     updated[index].isActive = !updated[index].isActive;
-  //     return updated;
-  //   });
-  // };
-
-
-  // // คลาสกลางสำหรับ input
-  // const inputClass = `
-  //   w-[80px] p-[5px] 
-  //   border border-gray-300 rounded
-  //   text-[12px]
-  //   focus:outline-none focus:ring-1 focus:ring-blue-500
-  // `;
 
   ///-----------------input add bus stop---------------
   const [fields, setFields] = useState([]); // เก็บข้อมูล input
@@ -58,7 +45,7 @@ export default function BusToSchoolSidebar({ isOpen, onClose, mapRef, mapElement
   const [isButtonDisabled, setIsButtonDisabled] = useState(false); // สถานะปุ่ม
   const [showFields2, setShowFields2] = useState(true);
 
-  
+
   const handleAddInput = async () => {
     setIsButtonDisabled(true); // ปิดปุ่มเมื่อกำลังเพิ่มข้อมูล
 
@@ -67,7 +54,7 @@ export default function BusToSchoolSidebar({ isOpen, onClose, mapRef, mapElement
 
     // เพิ่มฟิลด์ว่างๆ ทันที
     setFields((prevFields) => [...prevFields, ""]);
-    setRadiusValues([...radiusValues, 1]);
+    setRadiusValues([...radiusValues, 0.5]);
 
     // รอให้ผู้ใช้คลิกแผนที่และอัปเดตข้อมูล
     await addInput();
@@ -104,6 +91,7 @@ export default function BusToSchoolSidebar({ isOpen, onClose, mapRef, mapElement
     }
     setRadiusValues([])
     setIsButtonDisabled(false)
+    setShowFields2(true)
   };
 
 
@@ -194,7 +182,9 @@ export default function BusToSchoolSidebar({ isOpen, onClose, mapRef, mapElement
         mapRef.current.updateCircleRadius(idx, parseFloat(value));  // ส่งไปยัง Map
       }
       // ส่งค่าผ่าน props ไปยัง Parent Component (Sidebar)
-      onRadiusValuesChange(updatedRadius); // ส่งค่ากลับไป
+      if (typeof onRadiusValuesChange === "function") {
+        onRadiusValuesChange(updatedRadius); // ส่งค่ากลับไป
+      }
     }
   };
 
@@ -209,6 +199,43 @@ export default function BusToSchoolSidebar({ isOpen, onClose, mapRef, mapElement
   //   onClose()
   // }
 
+  const findAuto = () => {
+    if (mapRef.current) {
+      mapRef.current.handleFindAuto();
+    }
+    setShowFields(true);
+    setShowFields2(false)
+  }
+
+
+  const [isLoading, setIsLoading] = useState();
+  const typePage = "Bus To School"
+
+
+  const findingRoute = async () => {
+    try {
+      setIsLoading(true); // เริ่มโหลด
+
+      if (mapRef.current) {
+        const { routes, routeColors, routeDistance, routeDuration, Didu, route_type, bus_SP } = await mapRef.current.handleSubmit(
+          parseInt(numVehicles),
+          parseInt(maxStopsPerVehicle),
+          parseInt(maxTravelTime),
+          true,
+          "bus"
+        );
+        // openComponent("Route");
+        openComponent("Route", { routes, routeColors, routeDistance, routeDuration, Didu, typePage, route_type, bus_SP });
+      }
+
+    } catch (error) {
+      console.error("Error in findingRoute:", error);
+    } finally {
+      setIsLoading(false); // สิ้นสุดโหลด
+    }
+  };
+
+
   const [dateTime, setDateTime] = useState(null);
   useEffect(() => {
     setDateTime(new Date());
@@ -218,49 +245,54 @@ export default function BusToSchoolSidebar({ isOpen, onClose, mapRef, mapElement
     return () => clearInterval(interval);
   }, []);
 
-  const handleTabChange = (tabId) => {
-    // ถ้าคลิกแท็บเดิมให้ปิดแท็บ (set to null)
-    setActiveTab(tabId === activeTab ? null : tabId);
-  }
+
   return (
     <aside
-      className="fixed z-50 w-full sm:w-[500px] h-[500px] sm:h-screen bg-white border-t sm:border-t-0 sm:border-r border-gray-300
-      bottom-0 sm:top-0 lg:top-0 transition-transform
-    "
+      className="
+      fixed z-50 w-full sm:w-[500px] 
+      h-[500px] sm:h-screen
+      bg-white border-t sm:border-t-0 sm:border-r border-gray-300
+      bottom-0 sm:top-0 lg:top-0
+      transition-transform "
     >
-      <button
-        type="button"
-        className="bg-transparent hover:bg-gray-200  rounded-lg z-20 p-1.5 absolute top-4 end-4 inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white"
-        onClick={onClose}
-      >
-        <svg
-          aria-hidden="false"
-          className="w-5 h-5"
-          fill="currentColor"
-          viewBox="0 0 20 20"
-          xmlns="http://www.w3.org/2000/svg"
+      <div className="h-full flex flex-col px-3 pb-0">
+
+        <button
+          type="button"
+          className="bg-transparent hover:bg-gray-200  rounded-lg z-20 p-1.5 absolute top-4 end-4 inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white"
+          onClick={onClose}
         >
-          <path
-            fillRule="evenodd"
-            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-            clipRule="evenodd"
-          ></path>
-        </svg>
-        <span className="sr-only">Close menu</span>
-      </button>
-      <div >
-        <div className="relative h-screen flex flex-col overflow-y-auto p-5 pl-3" >
-          <span className={styles.text_date}>
-            {dateTime ? (
-              <p>{dateTime.toLocaleString("en-US", { dateStyle: "full" })}</p>
-            ) : (
-              <p>Loading...</p>
-            )}
-          </span>
+          <svg
+            aria-hidden="false"
+            className="w-5 h-5"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              fillRule="evenodd"
+              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+              clipRule="evenodd"
+            ></path>
+          </svg>
+          <span className="sr-only">Close menu</span>
+        </button>
+
+
+        <div className="relative h-screen flex flex-col overflow-y-auto p-2 pl-3">
+          <div className="mt-3">
+            <span className={styles.text_date}>
+              {dateTime ? (
+                <p>{dateTime.toLocaleString("en-US", { dateStyle: "full" })}</p>
+              ) : (
+                <p>Loading...</p>
+              )}
+            </span>
+          </div>
           <div className='py-8'>
             <label className={styles.text_information}>Information</label>
-            <div className="flex items-center gap-5 sm:gap-10 py-5">
-              <div className="flex flex-col">
+            <div className="flex justify-between items-center mt-5">
+              {/* <div className="flex flex-col">
                 <label>Number of Bus:</label>
                 <input
                   type="number"
@@ -270,7 +302,7 @@ export default function BusToSchoolSidebar({ isOpen, onClose, mapRef, mapElement
                   onChange={(e) => setNumVehicles(e.target.value)}
                   className={`${styles.number_input} mt-2 p-2`}
                 />
-              </div>
+              </div> */}
 
               <div className="flex flex-col">
                 <label>Max Capacity:</label>
@@ -283,7 +315,7 @@ export default function BusToSchoolSidebar({ isOpen, onClose, mapRef, mapElement
                   className={`${styles.max_input} mt-2 `}
                 />
               </div>
-              <div className="flex flex-col">
+              {/* <div className="flex flex-col">
                 <label>Time:</label>
                 <input
                   type="number"
@@ -293,50 +325,72 @@ export default function BusToSchoolSidebar({ isOpen, onClose, mapRef, mapElement
                   onChange={(e) => setMaxTravelTime(e.target.value)}
                   className={`${styles.time_input} mt-2 `}
                 />
+              </div> */}
+              <div className="mt-9">
+                {showFields ? (
+                  <button
+                    onClick={clearAll}
+                    className={styles.btn_clear}
+                  >
+                    Clear All
+                  </button>
+                ) : (
+                  <button onClick={findAuto} className={styles.btn_auto_find}>
+                    Auto Find Route
+                  </button>
+                )}
               </div>
             </div>
           </div>
-          {/* </div> */}
-          <div className="">
-            <div className="flex justify-between items-center mb-2">
-              <span className={styles.busStop}>Bus Stop</span>
-              {showFields && (
-                <button
-                  onClick={clearAll}
-                  className="bg-red-500 text-white px-2 py-1 rounded 
-               hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 
-               text-sm"
-                >
-                  Clear All
-                </button>
-              )}
-            </div>
 
-            {showFields && (
-              <>
-                {fields.map((val, idx) => (
-                  <div key={idx} className={`${styles.input_text_busStop} relative mt-2`}>
-                    <input
-                      type="text"
-                      value={
-                        elements[idx]
-                          ? `${elements[idx].lng.toFixed(8)}, ${elements[idx].lat.toFixed(8)}`
-                          : val
-                      }
-                      onChange={(e) => handleChange(idx, e.target.value)}
-                      placeholder={`Bus Stop Station ${idx + 1}`}
-                      className={styles.input_busStop}
-                    />
-                    {/* <svg xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="currentColor"
-                      className="hiiden absolute top-1/2 right-3 w-5 h-5 text-gray-400 transform -translate-y-1/2 cursor-pointer hover:text-gray-600"
-                      onClick={() => removeInput(idx)}
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                    </svg> */}
+
+          <div className="mb-2">
+            <h2 className={styles.busStop}>Bus Stops</h2>
+
+            {/* {showFields ? (
+              <button
+                onClick={clearAll}
+                className="bg-red-500 text-white px-2 py-1 rounded-md 
+               hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 
+               text-md"
+              >
+                Clear All
+              </button>
+            ) : (
+              <button onClick={findAuto} className="px-2 py-1  bg-blue-600 rounded-md text-md text-white">
+                Find Auto
+              </button>
+            )} */}
+          </div>
+
+          {showFields && (
+            <>
+              {fields.map((val, idx) => (
+                <div key={idx} className={`${styles.input_text_busStop} flex mt-2`}>
+                  <input
+                    type="text"
+                    value={
+                      elements[idx]
+                        ? `Lng: ${elements[idx].lng.toFixed(8)}, Lat: ${elements[idx].lat.toFixed(8)}`
+                        : val
+                    }
+                    onChange={(e) => handleChange(idx, e.target.value)}
+                    placeholder={`Bus Stop Station ${idx + 1}`}
+                    className={styles.input_busStop}
+                  />
+
+                  <input
+                    type="number"
+                    min="0.0"
+                    step="0.1"
+                    value={radiusValues[idx] || ""}
+                    className={`${styles.input_km} ml-3`}
+                    onChange={(e) => handleChangeRadius(idx, e.target.value)}
+                  />
+
+                  <span className={`${styles.text_km} mt-3`}>Km.</span>
+
+                  <div className="relative ml-8 mb-1">
                     <svg xmlns="http://www.w3.org/2000/svg"
                       fill="none" viewBox="0 0 24 24"
                       strokeWidth={1.5}
@@ -346,70 +400,106 @@ export default function BusToSchoolSidebar({ isOpen, onClose, mapRef, mapElement
                     >
                       <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                     </svg>
-                    <input
-                      type="number"
-                      min="0.0"
-                      step="0.1"
-                      value={radiusValues[idx] || ""}
-                      className={`${styles.input_km} ml-3`}
-                      onChange={(e) => handleChangeRadius(idx, e.target.value)}
-                    />
-                    <span className={styles.text_km}>Km.</span>
                   </div>
-                ))}
-              </>
-            )}
+                </div>
+              ))}
+            </>
+          )}
+
+          {showFields2 && (
             <div className='mt-3 flex items-center'>
               <button
                 onClick={handleAddInput}
                 disabled={isButtonDisabled} // ปิดการใช้งานปุ่มถ้ากดแล้ว
-                className={`${isButtonDisabled ? "text-gray-400" : "text-blue-600 hover:text-blue-700"
+                className={`${isButtonDisabled ? "text-gray-400 cursor-not-allowed" : "text-blue-600 hover:text-blue-700"
                   } text-sm flex justify-items-center mr-1`}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="#007BFF" className="size-6">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke={isButtonDisabled ? "#9CA3AF" : "#007BFF"} className="size-6">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                 </svg>
-                <div className={`${styles.text_add} ml-2`}>
-                  {isButtonDisabled ? "Add other bus stop" : "Add other bus stop"}
+                <div className={`ml-2 ${isButtonDisabled ? "text-gray-400" : "text-blue-600"} ${styles.text_add}`}>
+                  {isButtonDisabled ? "Adding..." : "Add other bus stop"}
                 </div>
               </button>
             </div>
-            <div className="mt-5">
-              <h1 className={styles.text_student}>Students Address</h1>
-              <div className={`${styles.card} mt-2`}>
-                <div className="flex justify-between p-8">
-                  <span className={styles.text}>
-                    Routes
-                  </span>
-                  <div onClick={toggleDropdown} >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5} stroke="currentColor"
-                      className="size-6"
-                      style={{
-                        transform: openDropdown ? "rotate(180deg)" : "rotate(0deg)", // หมุนไอคอน
-                        transition: "transform 0.3s ease", // การหมุนมีการ transition
-                      }}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                    </svg>
+          )}
 
-                  </div>
-                </div>
-              </div>
-            </div>
-            {openDropdown && (
-              <div className={styles.dropdown}>
-                <ul className="py-2 text-sm text-gray-700 dark:text-gray-200">
-                  <li></li>
-
-                </ul>
-              </div>
-            )}
+          <div className="mt-5">
+            <h1 className={styles.text_student}>Students Address</h1>
           </div>
+
+          {elements.map((busStop, index) => (
+            <div key={busStop.circleId} className="w-full">
+              <button
+                type="button"
+                onClick={() => toggleDropdown(busStop.circleId)}
+                className={`${styles.card} mt-2`}
+              >
+                <div className="flex justify-between p-4">
+                  <span className={styles.text}>
+                    <strong>Route {index + 1} </strong> ({busStop.students.length} pax)
+                  </span>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5} stroke="currentColor"
+                    className="size-6"
+                    style={{
+                      transform: openDropdown === busStop.circleId ? "rotate(180deg)" : "rotate(0deg)", // หมุนไอคอน
+                      transition: "transform 0.3s ease", // การหมุนมีการ transition
+                    }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                  </svg>
+                </div>
+              </button>
+
+              {openDropdown === busStop.circleId && (
+                <div >
+                  <ul className="">
+                    {busStop.students && busStop.students.length > 0 ? (
+                      busStop.students.map((student, idx) => (
+                        <li
+                          key={idx}
+                          className={`${styles.detail_dropdown} flex w-full p-4 flex-col`}
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className="flex w-full flex-col">
+                              <div className="flex items-center justify-between">
+                                <h5 className={` ${styles.text_name} py-1`}>
+                                  {student.first_name}   {student.last_name}
+                                </h5>
+                              </div>
+                              <p className={`${styles.text_adress} py-1`}>
+                                {student.address}
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              className={`${student.status === 1
+                                ? styles.btn_status
+                                : styles.btn_status_cancel
+                                } rounded-lg p-3 py-2 my-2 mb-2`}
+                            >
+                              {student.status === 1 ? 'Confirmed' : 'Canceled'}
+                            </button>
+
+                          </div>
+                        </li>
+                      ))
+                    ) : (
+                      <li className={`${styles.detail_dropdown} flex px-4 py-9`}>No students</li>
+                    )}
+                  </ul>
+                </div>
+              )}
+            </div>
+          ))}
+
         </div>
+
         <div className="mt-auto sticky bottom-0 flex justify-center bg-[#f9f9f9] border-t border-gray-300 w-full">
           <div className="bg-white w-screen py-3">
             <button
+              onClick={findingRoute}
               className={`${styles.btn_route} mx-auto block bg-blue-500 hover:bg-blue-600 rounded px-4 py-2`}
             >
               Optimize Routes

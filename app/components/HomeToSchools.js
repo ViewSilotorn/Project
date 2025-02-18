@@ -13,8 +13,12 @@ import configService from '../services/configService';
 // // สร้าง base URL
 // const apiBaseUrl = `${host}:${port}`;
 
-export default function HomeToSchoolSidebar({ isOpen, openComponent, onClose, mapRef }) {
+export default function HomeToSchoolSidebar({ isOpen, openComponent, onClose, mapRef, markersData }) {
     if (!isOpen) return null; // ถ้า Sidebar ไม่เปิด ให้คืนค่า null
+
+    const studentMax = markersData.length
+    // console.log("student all : "+studentMax);
+
 
     const [students, setStudents] = useState([]);
     const [error, setError] = useState(null);
@@ -22,14 +26,14 @@ export default function HomeToSchoolSidebar({ isOpen, openComponent, onClose, ma
     const [currentPage, setCurrentPage] = useState(1);
     const [totalCount, setTotalCount] = useState(0);
     const [perPage, setPerPage] = useState(10);
-    const [numVehicles, setNumVehicles] = useState(2);
-    const [maxStopsPerVehicle, setMaxStopsPerVehicle] = useState(24);
+    const [numVehicles, setNumVehicles] = useState("");
+    const [maxStopsPerVehicle, setMaxStopsPerVehicle] = useState("");
     const [maxTravelTime, setMaxTravelTime] = useState(180);
 
     // const [downloadData, setDownloadData] = useState(false);
     const [user, setUser] = useState(null);
     const [idToken, setIdToken] = useState(""); // State สำหรับเก็บ token
-    const typePage = "find"
+    const typePage = "Home To School"
 
     useEffect(() => {
         const unsubscribe = subscribeAuthState(setUser, setIdToken); // เรียกใช้ service
@@ -52,6 +56,39 @@ export default function HomeToSchoolSidebar({ isOpen, openComponent, onClose, ma
 
     //     loadStudents();
     // }, [currentPage]);
+
+
+    const handleMaxCapacityChange = (e) => {
+        const capacity = parseFloat(e.target.value);
+        if (isNaN(capacity) || capacity <= 0) {
+            setMaxStopsPerVehicle("");
+            setNumVehicles("");
+            return;
+        }
+        setMaxStopsPerVehicle(e.target.value); // เก็บเป็น string
+        let calculated = Math.ceil(studentMax / capacity);
+        if (calculated < 1) {
+            calculated = 1;
+        }
+        setNumVehicles(calculated.toString()); // แปลงเป็น string
+    };
+
+    const handleBusChange = (e) => {
+        const busVal = parseFloat(e.target.value);
+        if (isNaN(busVal) || busVal <= 0) {
+            setNumVehicles("");
+            setMaxStopsPerVehicle("");
+            return;
+        }
+        setNumVehicles(e.target.value); // เก็บเป็น string
+
+        let calculated = Math.ceil(studentMax / busVal);
+        if (calculated < 1) {
+            calculated = 1;
+        }
+        setMaxStopsPerVehicle(calculated.toString()); // แปลงเป็น string
+    };
+
 
     ////////////////////////////////ดึงข้อมูลนักเรียนทั้งหมด//////////////////////////////////////
     const [searchQuery, setSearchQuery] = useState(""); // State for search input
@@ -264,7 +301,7 @@ export default function HomeToSchoolSidebar({ isOpen, openComponent, onClose, ma
             setIsLoading(true); // เริ่มโหลด
 
             if (mapRef.current) {
-                const { routes, routeColors, routeDistance, routeDuration, Didu } = await mapRef.current.handleSubmit(
+                const { routes, routeColors, routeDistance, routeDuration, Didu, route_type } = await mapRef.current.handleSubmit(
                     parseInt(numVehicles),
                     parseInt(maxStopsPerVehicle),
                     parseInt(maxTravelTime),
@@ -272,7 +309,7 @@ export default function HomeToSchoolSidebar({ isOpen, openComponent, onClose, ma
                     "home"
                 );
                 // openComponent("Route");
-                openComponent("Route", { routes, routeColors, routeDistance, routeDuration, Didu ,typePage});
+                openComponent("Route", { routes, routeColors, routeDistance, routeDuration, Didu, typePage, route_type });
             }
 
         } catch (error) {
@@ -320,9 +357,9 @@ export default function HomeToSchoolSidebar({ isOpen, openComponent, onClose, ma
                     <span className="sr-only">Close menu</span>
                 </button>
                 <div className="h-full overflow-y-auto flex flex-col">
-                    <div className="relative px-3 flex flex-col">
+                    <div className="relative px-5 flex flex-col">
                         <div className='sticky top-0 z-10 bg-white'>
-                            <div className="flex flex-col items-start space-y-1 mt-5">
+                            <div className="flex flex-col items-start mt-5">
                                 {/* <span className={styles.text_date}>Tuesday, January 2025</span> */}
                                 <span className={styles.text_date}>
                                     {dateTime ? (
@@ -331,9 +368,11 @@ export default function HomeToSchoolSidebar({ isOpen, openComponent, onClose, ma
                                         <p>Loading...</p>
                                     )}
                                 </span>
+
                                 <div className='py-8'>
                                     <label className={styles.text_information}>Information</label>
-                                    <div className="flex items-center gap-5 sm:gap-10 py-3">
+                                    {/* <div className="flex flex-col items-center"> */}
+                                    <div className="flex items-center gap-3 sm:gap-10  py-3">
                                         <div className="flex flex-col">
                                             <label>Bus:</label>
                                             <input
@@ -341,8 +380,9 @@ export default function HomeToSchoolSidebar({ isOpen, openComponent, onClose, ma
                                                 min="1"
                                                 required
                                                 value={numVehicles}
-                                                onChange={(e) => setNumVehicles(e.target.value)}
-                                                className={`${styles.number_input} mt-2 p-2`}
+                                                // onChange={(e) => setNumVehicles(e.target.value)}
+                                                onChange={handleBusChange}
+                                                className={`${styles.number_input} mt-2 p-2 `}
                                             />
                                         </div>
 
@@ -353,7 +393,8 @@ export default function HomeToSchoolSidebar({ isOpen, openComponent, onClose, ma
                                                 min="1"
                                                 required
                                                 value={maxStopsPerVehicle}
-                                                onChange={(e) => setMaxStopsPerVehicle(e.target.value)}
+                                                // onChange={(e) => setMaxStopsPerVehicle(e.target.value)}
+                                                onChange={handleMaxCapacityChange}
                                                 className={`${styles.max_input} mt-2 `}
                                             />
                                         </div>
@@ -370,12 +411,14 @@ export default function HomeToSchoolSidebar({ isOpen, openComponent, onClose, ma
                                         </div>
 
                                     </div>
+                                    {/* </div> */}
+
                                 </div>
                             </div>
                             <div className="mb-2">
-                                <span className={styles.text_student}>Students</span>
+                                <span className={styles.text_student}>Students ({studentMax})</span>
                             </div>
-                            <div className="bg-white flex border border-gray-300 rounded-md mb-2 min-w-sm">
+                            <div className="bg-white border border-gray-300 rounded-md mb-2 ">
                                 <div className="relative flex">
                                     <span className="inset-y-0 start-0 grid w-12 place-content-center">
                                         {/* icon Search */}
@@ -386,6 +429,7 @@ export default function HomeToSchoolSidebar({ isOpen, openComponent, onClose, ma
                                             </svg>
                                         </button>
                                     </span>
+
                                     {/* Search input */}
                                     <form onSubmit={handleSearch}>
                                         <input
@@ -393,20 +437,23 @@ export default function HomeToSchoolSidebar({ isOpen, openComponent, onClose, ma
                                             placeholder="Search..."
                                             value={searchQuery}
                                             onChange={handleSearchChange}
-                                            className={`${St.input_search} rounded-lg w-full`}
+                                            className={`${St.input_search} rounded-lg`}
                                         />
                                     </form>
 
                                     {/* Filter Icon */}
                                     <button
                                         type="button"
-                                        className="p-2 text-gray-500  lg:ml-28"
+                                        className="absolute end-2.5 bottom-2.5 "
                                         onClick={() => setIsOpenDropdown(!isOpenDropdown)
                                         } // Toggle dropdown visibility
                                     >
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="#CCCCCC" className="w-6 h-6">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
-                                        </svg>
+                                        <div>
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="#CCCCCC" className="w-6 h-6">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
+                                            </svg>
+                                        </div>
+
                                     </button>
 
                                     {/* Dropdown Menu */}

@@ -8,6 +8,8 @@ import Image from 'next/image';
 import app from "../../../config.js";
 import { getAuth, signOut, onAuthStateChanged, sendPasswordResetEmail } from "firebase/auth";
 
+//css
+import styles from "../../css/nav.module.css"
 
 // Componets
 import HomeToSchools from "../../components/HomeToSchools";
@@ -16,7 +18,7 @@ import HistoryRoute from "../../components/HistoryRoute";
 import Student from "../../components/Students";
 import Route from "../../components/Route";
 import School from "../../components/School";
-import Logo from '../../Image/Logo.png'
+import Logo from '../../Image/LogoHeader.png'
 
 // Modals
 import PasswordResetModal from "../../modals/PasswordResetModal"; // นำเข้า Component ใหม่
@@ -110,6 +112,13 @@ export default function Sidebar() {
     const handleRadiusValuesChange = (newRadiusValues) => {
         setRadiusValues(newRadiusValues);
     };
+    const [markersData, setMarkersData] = useState([]);
+
+    // Callback ที่จะถูกส่งไปยัง Map component เพื่อรับ markers data
+    const handleMarkersUpdate = (data) => {
+        setMarkersData(data);
+    };
+
 
     const renderComponent = () => {
         if (!activeComponent) return null;
@@ -118,7 +127,7 @@ export default function Sidebar() {
 
         switch (name) {
             case "HomeToSchools":
-                return <HomeToSchools mapRef={mapRef} {...commonProps} />;
+                return <HomeToSchools mapRef={mapRef} {...commonProps} markersData={markersData} />;
             case "ButToSchools":
                 return <ButToSchools mapRef={mapRef} mapElements={mapElements} {...commonProps} onRadiusValuesChange={handleRadiusValuesChange} />;
             case "HistoryRoute":
@@ -131,8 +140,6 @@ export default function Sidebar() {
                 return <Route mapRef={mapRef} {...commonProps} {...props} />;
             case "DetailRoute":
                 return <DetailRoute {...commonProps} />;
-            case "School":
-                return <SchoolsPage mapRef={mapRef} {...commonProps} />;
             default:
                 return null;
         }
@@ -224,20 +231,17 @@ export default function Sidebar() {
                             <Image
                                 src={Logo}
                                 alt="FlowBite Logo"
-                                width={32} // กำหนดความกว้าง
-                                height={32} // กำหนดความสูง
-                                className="h-8 me-3"
+                                width={129}// กำหนดความกว้าง
+                                height={38} // กำหนดความสูง
+                                className=""
                             />
-                            <span className="self-center text-sm font-semibold sm:text-sm whitespace-nowrap dark:text-white">
-                                RouteWise
-                            </span>
                         </a>
 
-                        <div className="">
+                     
                             <button
                                 onClick={toggleSidebar}
                                 type="button"
-                                className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 absolute top-2.5 end-2.5 inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                                className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 absolute top-4 end-2.5 inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white"
                             >
                                 <svg
                                     aria-hidden="false"
@@ -254,7 +258,7 @@ export default function Sidebar() {
                                 </svg>
                                 <span className="sr-only">Close menu</span>
                             </button>
-                        </div>
+            
 
                     </header>
 
@@ -564,24 +568,7 @@ export default function Sidebar() {
                     </div>
                 </div>
             )}
-            {/* Additional Sidebar
-      {activeComponent === 'HomeToSchools' && (
-        <HomeToSchools isOpen={true} openComponent={(componentName) => setActiveComponent(componentName)} />
-      )}
-      {activeComponent === 'ButToSchools' && (
-        <ButToSchools isOpen={true} onClose={() => setActiveComponent(null)} />
-      )}
-      {activeComponent === 'HistoryRoute' && (
-        <HistoryRoute isOpen={true} onClose={() => setActiveComponent(null)} />
-      )}
-      {activeComponent === 'Student' && (
-        <Student isOpen={true} onClose={() => setActiveComponent(null)} />
-      )}
-
-      {activeComponent === 'Route' && (
-        <Route isOpen={true} openComponent={(componentName) => setActiveComponent(componentName)} />
-      )} */}
-
+           
             {/* Render the active component */}
             {renderComponent()}
 
@@ -589,7 +576,7 @@ export default function Sidebar() {
             {/* ml-0 sm:ml-0 sm:mr-0 */}
             <div className="">
                 <div className="w-full h-full">
-                    <Map ref={mapRef} onMapElementsUpdate={handleMapElementsUpdate} />
+                    <Map ref={mapRef} onMapElementsUpdate={handleMapElementsUpdate} radiusValues={radiusValues} onMarkersUpdate={handleMarkersUpdate}/>
                 </div>
             </div>
 
@@ -601,9 +588,7 @@ export default function Sidebar() {
                 handlePasswordResetRequest={handlePasswordResetRequest}
                 closeModal={() => setShowPopupReset(false)}
             />
-            {/* <Modal isOpen={isModalOpen} onClose={closeModal}>
-            </Modal> */}
-            {/* <ListStudent isOpenListStudent={openListStudent} onCloseListStudent={closeListStudentModal}></ListStudent> */}
+
             <ImportRoute mapRef={mapRef} {...commonProps} isOpenImportRoute={openImportRoute} onCloseImportRoute={closeImportRouteModal}></ImportRoute>
         </>
     );

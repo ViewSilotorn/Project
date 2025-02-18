@@ -117,7 +117,7 @@ export default function SchoolsPage({ isOpen, onClose, mapRef }) {
                showAlert('Updated Success!')
                 // รีเฟรชข้อมูล school ใหม่
                 fetchData(); // เรียกใช้ฟังก์ชัน fetchData
-                // mapRef.current?.refetchData();
+                mapRef.current?.refetchData();
                 return;
             } catch (error) {
                 console.error(error);

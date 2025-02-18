@@ -7,8 +7,12 @@ import { saveTrip } from "../services/tripService";
 import ResetModal from "../modals/ResetModal";
 import SaveModal from "../modals/SaveModal";
 import showAlert from "../modals/ShowAlert";
+import DownLoadModal from "../modals/DownloadModal";
 
-export default function RouteSidebar({ isOpen, openComponent, onClose, mapRef, routes, routeColors, routeDistance, routeDuration, Didu, color, typePage }) {
+export default function RouteSidebar({ isOpen, openComponent, onClose, mapRef, routes, routeColors, routeDistance, routeDuration, Didu, color, typePage, route_type, bus_SP, student_inBus }) {
+
+  console.log("this st bus ja", student_inBus);
+
   const [activeComponent, setActiveComponent] = useState("list"); // "list" = หน้ารายการ, "detail" = หน้ารายละเอียด
   const [selectedRoute, setSelectedRoute] = useState(null); // เก็บข้อมูลเส้นทางที่เลือก
   // const [distance, setDistance] = useState(null);
@@ -57,17 +61,26 @@ export default function RouteSidebar({ isOpen, openComponent, onClose, mapRef, r
 
 
   const resetRoute = () => {
-    mapRef.current.handleReset();
+    if (mapRef.current) {
+      mapRef.current.handleReset();
+      mapRef.current.clearAllElements()
+    }
     openComponent();
   };
 
   const backpage = () => {
-    mapRef.current.handleReset();
+    if (mapRef.current) {
+      mapRef.current.handleReset();
+      mapRef.current.clearAllElements()
+    }
     openComponent('HistoryRoute');
   };
 
   const closePage = () => {
-    mapRef.current.handleReset();
+    if (mapRef.current) {
+      mapRef.current.handleReset();
+      mapRef.current.clearAllElements()
+    }
     onClose()
   };
 
@@ -79,11 +92,11 @@ export default function RouteSidebar({ isOpen, openComponent, onClose, mapRef, r
     // setSelectedRoute({ route, routeKey, routeColor, distance, duration}); // เก็บข้อมูลเส้นทาง
     // setActiveComponent("detail"); // เปลี่ยนไปหน้ารายละเอียด
   };
-  const goDetail = async (route, routeKey, routeColor, type, distance, duration) => {
+  const goDetail = async (route, routeKey, routeColor, type, distance, duration, route_type, bus_sp) => {
     mapRef.current.handleReset();
     await mapRef.current.handleDrawRoute(route, routeKey, routeColor, type);  // draw route
 
-    setSelectedRoute({ route, routeKey, routeColor, distance, duration }); // เก็บข้อมูลเส้นทาง
+    setSelectedRoute({ route, routeKey, routeColor, distance, duration, route_type, bus_sp }); // เก็บข้อมูลเส้นทาง
     setActiveComponent("detail"); // เปลี่ยนไปหน้ารายละเอียด
   };
 
@@ -91,7 +104,7 @@ export default function RouteSidebar({ isOpen, openComponent, onClose, mapRef, r
 
   const handleSaveTrip = async () => {
     if (!idToken) {
-      console.error("🔴 No idToken found");
+      console.error("No idToken found");
       return;
     }
 
@@ -105,42 +118,44 @@ export default function RouteSidebar({ isOpen, openComponent, onClose, mapRef, r
 
     const tripData = {
       school_id: 1,
-      types: "Home To School",
+      types: typePage,
       routes: formattedRoutes
     };
 
-    console.log("📌 thiss routes:", JSON.stringify(tripData, null, 2));
+    console.log("this routes:", JSON.stringify(tripData, null, 2));
 
     try {
       const result = await saveTrip(idToken, tripData);
-      // Swal.fire({
-      //   text: 'Save complete!',
-      //   icon: 'success',
-      //   timer: 2000,
-      //   showConfirmButton: false, 
-      //   // confirmButtonText: 'Thanks',
-      //   customClass: {
-      //     popup: styles.myPopup,
-      //     content: styles.myContent,
-      //     // confirmButton: styles.myConfirmButton,
-      //   }
-      // });
+      
       showAlert("Save complete!")
-      console.log("🟢 Trip saved successfully:", result);
-      mapRef.current.handleReset();
+      console.log("Trip saved successfully:", result);
+
+      if (mapRef.current) {
+        mapRef.current.handleReset();
+        mapRef.current.clearAllElements()
+      }
       openComponent("HistoryRoute");
     } catch (error) {
-      console.error("🔴 Failed to save trip:", error);
+      console.error("Failed to save trip:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const [showModal, setShowModal] = useState(false);
 
+   // ฟังก์ชันเมื่อกดปุ่ม
+   const onButtonClick = () => {
+    setShowModal(true); // แสดง Modal เมื่อกดปุ่ม
+  };
+
+  const onCloseModal = () => {
+    setShowModal(false); // ปิด Modal
+  };
   // ฟังก์ชันสำหรับดาวน์โหลดไฟล์ CSV
   const downloadFile = () => {
     // สร้าง CSV จาก routes และ routeColors
-    const csvHeaders = "route_name,latitude,longitude,color\n";
+    const csvHeaders = `route_name,latitude,longitude,color,${route_type}\n`;
     const csvRows = [];
 
     // สร้างข้อมูล CSV โดยใช้ข้อมูลจาก routes และ routeColors
@@ -174,7 +189,12 @@ export default function RouteSidebar({ isOpen, openComponent, onClose, mapRef, r
 
     // ทำลาย URL หลังจากการดาวน์โหลดเสร็จ
     URL.revokeObjectURL(url);
+
+    showAlert("Download complete!");
+    setShowModal(false); // ปิด Modal
   };
+
+
 
   return (
     <aside
@@ -217,7 +237,7 @@ export default function RouteSidebar({ isOpen, openComponent, onClose, mapRef, r
 
             </button>
             <div className="flex items-center grow justify-center mr-5">
-              <h1 className={styles.Route}>All Routes</h1>
+              <h1 className={styles.Route}>Routes All</h1>
             </div>
           </div>
         </div>
@@ -317,14 +337,45 @@ export default function RouteSidebar({ isOpen, openComponent, onClose, mapRef, r
                         Time: {diduArray[index].duration} Min.
                       </p>
                       <p className={`${styles.text_detail} py-1`}>
-                        Students: {route[`route ${index + 1}`] ? route[`route ${index + 1}`].length - 2 : 0}
+                        {route_type === "home" ? (
+                          <>
+                            Students: {route[`route ${index + 1}`] ? route[`route ${index + 1}`].length - 2 : 0}
+                          </>
+                        ) : route_type === "bus" ? (
+                          <>
+                            Students: {bus_SP[index] && bus_SP[index][`bus ${index + 1}`] ? bus_SP[index][`bus ${index + 1}`].length : 0}
+                          </>
+                        ) : (
+                          <>
+                            Students: {route[`route ${index + 1}`] ? route[`route ${index + 1}`].length - 2 : 0}
+                          </>
+                        )}
                       </p>
                     </div>
 
                     {/* ไอคอนลูกศร */}
                     <div
                       onClick={() =>
-                        goDetail(route, `route ${index + 1}`, routeColors[index], false, diduArray[index].distance, diduArray[index].duration)
+                        route_type === "home" ?
+                          goDetail(
+                            route,
+                            `route ${index + 1}`,
+                            routeColors[index],
+                            false,
+                            diduArray[index].distance,
+                            diduArray[index].duration,
+                            route_type
+                          )
+                          : goDetail(
+                            route,
+                            `route ${index + 1}`,
+                            routeColors[index],
+                            false,
+                            diduArray[index].distance,
+                            diduArray[index].duration,
+                            route_type,
+                            bus_SP[index]
+                          )
                       }
                       className="flex items-center mr-2 sm:mr-4 hover:text-blue-500">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="size-8">
@@ -337,7 +388,7 @@ export default function RouteSidebar({ isOpen, openComponent, onClose, mapRef, r
             </ul>
           </div>
         </div>
-        {typePage === "find" ? (
+        {typePage === "Home To School" || typePage === "Bus To School" ? (
           <div className="mt-auto sticky bottom-0 left-0 right-0 bg-white border-t pt-6 pb-[20px] flex justify-between space-x-3">
             <button
               onClick={() => onclick()}
@@ -347,97 +398,43 @@ export default function RouteSidebar({ isOpen, openComponent, onClose, mapRef, r
             </button>
             <button
               onClick={openModal}
+              disabled={isLoading}
               className={` ${styles.btn_save} flex-1 `}
             >
-              Save
+              {isLoading ? "Saving..." : "Save"}
             </button>
-          </div>) : typePage === "history" ? (
-            <div className="mt-auto sticky bottom-0 left-0 right-0 bg-white border-t pt-6 pb-[20px] flex  justify-center space-x-3">
-              {/* <button
+          </div>
+        ) : typePage === "history" ? (
+          <div className="mt-auto sticky bottom-0 left-0 right-0 bg-white border-t pt-6 pb-[20px] flex  justify-center space-x-3">
+            {/* <button
                 onClick={closePage}
                 className="flex-1 text-white bg-red-500 p-2 rounded hover:bg-red-600"
               >
                 Close
               </button> */}
-              <button
-                onClick={downloadFile}
-                className={styles.btn_download}
-              >
-                Download
-              </button>
-            </div>
-          ) : (
-            <div className="mt-auto sticky bottom-0 left-0 right-0 bg-gray-100 border-t pt-6 pb-[20px] flex justify-between space-x-3">
+            <button
+              onClick={onButtonClick}
+              className={styles.btn_download}
+            >
+              Download
+            </button>
+          </div>
+        ) : (
+          <div className="mt-auto sticky bottom-0 left-0 right-0 bg-gray-100 border-t pt-6 pb-[20px] flex justify-between space-x-3">
             <button
               onClick={closePage}
               className="flex-1 text-white bg-red-500 p-2 rounded hover:bg-red-600"
             >
               Close
             </button>
-            </div>
-          )}
+          </div>
+        )}
 
       </div>
 
       <ResetModal isOpen={showResetModal} onClose={cancel} resetRoute={resetRoute}></ResetModal>
       <SaveModal isOpen={showSaveModal} onClose={CloseModal} handleSaveTrip={handleSaveTrip}></SaveModal>
-      {/* {showModal && (
-        <div className={styles.modal_overlay}>
-          <div className={styles.card_modal}>
-            <div className="flex flex-1 flex-col justify-center relative px-6 lg:px-8">
-
-              <button onClick={cancel} tabIndex="-1" type="button" className="absolute top-2 right-2 rtl:right-auto rtl:left-2">
-                <svg title="Close" tabIndex="-1" className={styles.close}
-                  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fillRule="evenodd"
-                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                    clipRule="evenodd"></path>
-                </svg>
-                <span className="sr-only">
-                  Close
-                </span>
-              </button>
-
-              <div className="space-y-2 p-2 pt-5">
-                <div className="p-4 space-y-2">
-                  <h2 className={styles.title}>
-                    Reset route
-                  </h2>
-                  <p className={styles.p}>
-                    Are you sure you would to do this?
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div className="px-6 py-4">
-                  <div className="grid gap-5 grid-cols-[repeat(auto-fit,minmax(0,1fr))]">
-                    <button type="button"
-                      onClick={resetRoute}
-                      className={`${styles.btn_resetModal} inline-flex items-center justify-center`}>
-                      <span className="flex items-center gap-1">
-                        <span className={styles.text_resetModal}>
-                          Reset
-                        </span>
-                      </span>
-                    </button>
-                    <button onClick={cancel}
-                      type="button"
-                      className={`${styles.btn_cancel} inline-flex items-center justify-center`}>
-                      <span className="flex items-center gap-1">
-                        <span className={styles.text_cancel}>
-                          Cancel
-                        </span>
-                      </span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )} */}
-
+      <DownLoadModal isOpen={showModal} onClose={onCloseModal} onDownload={downloadFile}></DownLoadModal>
 
       {activeComponent === "detail" && selectedRoute && (
         <DetailRouteSidebar
@@ -447,6 +444,8 @@ export default function RouteSidebar({ isOpen, openComponent, onClose, mapRef, r
           color={selectedRoute.routeColor}
           distance={selectedRoute.distance}
           duration={selectedRoute.duration}
+          route_type={selectedRoute.route_type}
+          bus_SP={selectedRoute.bus_sp}
 
           onGoBack={goBack}
         />

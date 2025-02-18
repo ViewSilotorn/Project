@@ -4,8 +4,13 @@ import styles from '../css/HomeToSchools.module.css';
 import { fetchStudentBatchData } from "../services/studentService";
 import { subscribeAuthState } from "../services/authService"; // Service สำหรับ auth state
 
-export default function DetailRouteSidebar({ route, routeIndex, color, distance, duration, onGoBack, mapRef }) {
+export default function DetailRouteSidebar({ route, routeIndex, color, distance, duration, onGoBack, mapRef, route_type, bus_SP }) {
   // console.log("Dis "+distance, "Dura "+duration);
+
+  // console.log("Yoo this is : "+JSON.stringify(bus_SP, null, 2));
+  // console.log("Yoo Route is : "+ JSON.stringify(route, null, 2));
+  
+
   const [user, setUser] = useState(null);
   const [idToken, setIdToken] = useState("");
   const [coordinates, setCoordinates] = useState([]);
@@ -20,20 +25,33 @@ export default function DetailRouteSidebar({ route, routeIndex, color, distance,
   useEffect(() => {
     const allCoordinates = [];
 
-    if (route && typeof route === "object") {
-      Object.entries(route).forEach(([key, value]) => {
-        if (Array.isArray(value)) {
-          value.forEach((coordinate) => {
-            const [lat, lng] = coordinate;
-            allCoordinates.push({ lat, lng });
-          });
-        }
-      });
+    if (route_type === "home") {
+      if (route && typeof route === "object") {
+        Object.entries(route).forEach(([key, value]) => {
+          if (Array.isArray(value)) {
+            value.forEach((coordinate) => {
+              const [lat, lng] = coordinate;
+              allCoordinates.push({ lat, lng });
+            });
+          }
+        });
+      }
+    } else {
+      if (bus_SP && typeof bus_SP === "object"){
+        Object.entries(bus_SP).forEach(([key, value]) => {
+          if (Array.isArray(value)) {
+            value.forEach((coordinate) => {
+              const [lat, lng] = coordinate;
+              allCoordinates.push({ lat, lng });
+            });
+          }
+        })
+      }
     }
 
     setCoordinates(allCoordinates);
     console.log("Coordinates length:", allCoordinates.length);
-  }, [route]);
+  }, [route, route_type, bus_SP]);
 
   useEffect(() => {
     const fetchStudentDataForBatch = async () => {
@@ -86,7 +104,7 @@ export default function DetailRouteSidebar({ route, routeIndex, color, distance,
 
             </button>
             <div className="flex items-center grow justify-center mr-5">
-              <div style={{ width: '40px', height: '40px', backgroundColor: color}}>
+              <div style={{ width: '40px', height: '40px', backgroundColor: color }}>
               </div>
               <p className="px-2">
                 <strong>Route:</strong> {routeIndex.replace("route ", "")}
@@ -144,16 +162,10 @@ export default function DetailRouteSidebar({ route, routeIndex, color, distance,
                   {data.address}
                 </p>
               </div>
-              {/* <div
-                className="flex items-center mr-2 sm:mr-4 hover:text-blue-500">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="size-6">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                </svg>
-              </div> */}
+            
             </div>
           ))}
         </div>
-
 
       </div>
     </aside>
